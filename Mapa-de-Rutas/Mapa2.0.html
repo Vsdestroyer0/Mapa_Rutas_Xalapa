@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Rutas y circuitos siguiendo carreteras (Leaflet + OSRM)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="map"></div>
+
+ <div id="menu-display">
+  <input type="checkbox" id="toggle-menu" checked style="display:none;">
+  <label for="toggle-menu" class="hamburger" >
+    <span></span>
+    <span></span>
+    <span></span>
+
+  </label>
+</div>
+
+  <div id="inicioSesion">
+    <button id="loginButton">Iniciar Sesión</button>
+    <button id="logoutButton" style="display:none;">Cerrar Sesión</button>
+    <span id="userEmail" style="margin-left:10px;"></span>
+  </div>
+
+<div id="menu" hidden>
+  <div class="menu-columns">
+    <!-- Columna izquierda -->
+    <div class="menu-left">
+      <h3>Buscar y filtrar</h3>
+      <input type="text" id="search-stop" placeholder="Buscar ruta" class="search-stop">
+      <div id="filters">
+        <label><input type="checkbox" id="circuitos"> Circuitos</label>
+        <label><input type="checkbox" id="lineas"> Líneas</label>
+      </div>
+    </div>
+    <!-- Columna derecha:-->
+    <div class="menu-right">
+      <h3>Rutas disponibles</h3>
+      <div id="btns"></div>
+        <button id="clear">Limpiar</button>
+        <button id="fit">Ajustar vista</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="menu2" hidden >
+  <h3>Estadísticas de rutas</h3>
+  <div id="btns2">
+      <div id="stats" style="margin-top:16px;"></div>
+      <div id="details" style="margin-top:16px;"></div>
+      <div id="utils" style="margin-top:16px;">  
+  </div>
+</div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="mapa.js">  </script>
+</body>
+</html>
+
