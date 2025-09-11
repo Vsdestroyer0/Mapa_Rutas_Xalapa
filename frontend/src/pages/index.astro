@@ -1,13 +1,25 @@
 ---
-import Map from "../components/Map.jsx";
+import MainLayout from "../layouts/mainLayout.astro";
+import RouteToggle from "../components/RouteToggle.jsx";
 ---
 
-<html lang="es">
-  <head>
-    <title>Mapa con Leaflet</title>
-  </head>
+<MainLayout title="Inicio | MiRutaXalapa">
+  <RouteToggle client:load />
+</MainLayout>
+
+<!-- ---
+import RouteList from "../components/RouteList.jsx";
+import Map from "../components/Map.jsx";
+import { routes } from "../utils/mockData.js";
+
+const userPosition = { lat: 19.546, lng: -96.921 }; // Posición simulada
+---
+
+<html>
   <body>
-    <h1>Mapa interactivo con Leaflet</h1>
-    <Map client:only="react" />
+    <h1>Dashboard de rutas</h1>
+    <RouteList routes={routes} />
+    <Map client:load stops={routes[0].stops} userPosition={userPosition} />
   </body>
 </html>
+ -->

@@ -1,4 +1,58 @@
+// src/components/Map.jsx
 import { useEffect } from "react";
+import "leaflet/dist/leaflet.css";
+import useUserPosition from "../hooks/useUserPosition.jsx";
+
+export default function Map({ stops }) {
+    const userPosition = useUserPosition();
+
+    useEffect(() => {
+        if (!userPosition.lat || !userPosition.lng) return; // Espera a tener coordenadas
+
+        import("leaflet").then(L => {
+            // Evitar reinicializar el mapa si ya existe
+            if (L.map.hasOwnProperty("mapInstance")) {
+                L.map.mapInstance.remove();
+            }
+
+            const map = L.map("map").setView([userPosition.lat, userPosition.lng], 13);
+            L.map.mapInstance = map; // Guardamos la instancia para evitar errores "Map container is already initialized"
+
+            // Capas base
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap contributors",
+            }).addTo(map);
+
+            // Marcadores de paradas
+            stops.forEach(s => {
+                L.marker([s.lat, s.lng])
+                    .addTo(map)
+                    .bindPopup(s.name);
+            });
+
+            // Marcador del usuario con icono personalizado
+            const userIcon = L.icon({
+                iconUrl: "/images/user-marker.png",
+                iconSize: [30, 30],
+                iconAnchor: [15, 30],
+            });
+
+            L.marker([userPosition.lat, userPosition.lng], {
+                title: "Tú",
+                icon: userIcon
+            }).addTo(map);
+
+            // Dibujar línea de ruta conectando las paradas
+            const latlngs = stops.map(s => [s.lat, s.lng]);
+            L.polyline(latlngs, { color: "yellow" }).addTo(map);
+        });
+    }, [stops, userPosition]);
+
+    return <div id="map" style={{ height: "500px", width: "100%" }}></div>;
+}
+
+
+/* import { useEffect } from "react";
 import "leaflet/dist/leaflet.css";
 
 export default function Map() { //retorna el div con mapa
@@ -24,3 +78,4 @@ export default function Map() { //retorna el div con mapa
 
     );
 }
+ */

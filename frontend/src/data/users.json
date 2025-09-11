@@ -1,0 +1,27 @@
+[
+  {
+    "username": "admin",
+    "password": "123",
+    "role": "admin"
+  },
+  {
+    "username": "user",
+    "password": "123",
+    "role": "user"
+  },
+  {
+    "username": "sdfasdf",
+    "password": "435",
+    "role": "user"
+  },
+  {
+    "username": "emir",
+    "password": "juanito",
+    "role": "user"
+  },
+  {
+    "username": "admin",
+    "password": "dfdsfa",
+    "role": "user"
+  }
+]

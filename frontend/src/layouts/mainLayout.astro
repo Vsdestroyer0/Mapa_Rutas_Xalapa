@@ -1,0 +1,20 @@
+---
+import "../styles/global.css";
+import NavBar from "../components/navBar.astro";
+
+const { title = "MiRutaXalapa" } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>{title}</title>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <NavBar />
+    <main class="max-w-6xl mx-auto p-6">
+      <slot />
+      <!-- contenido -->
+    </main>
+  </body>
+</html>

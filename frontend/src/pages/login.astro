@@ -1,0 +1,65 @@
+---
+import MainLayout from "../layouts/mainLayout.astro";
+---
+
+<MainLayout title="Iniciar sesión | MiRutaXalapa">
+  <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+    <h2 class="text-2xl font-bold mb-4">Iniciar sesión</h2>
+    <form id="loginForm" class="space-y-4">
+      <input
+        type="text"
+        name="username"
+        placeholder="Usuario"
+        required
+        class="w-full border rounded-md p-2"
+      />
+      <input
+        type="password"
+        name="password"
+        placeholder="Contraseña"
+        required
+        class="w-full border rounded-md p-2"
+      />
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white py-2 rounded-md">Entrar</button
+      >
+    </form>
+    <p id="loginMessage" class="mt-2 text-red-500"></p>
+  </div>
+</MainLayout>
+
+<script type="module">
+  const msg = document.getElementById("loginMessage");
+  const form = document.getElementById("loginForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const data = {
+      username: formData.get("username"),
+      password: formData.get("password"),
+    };
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        msg.textContent = "";
+        alert(`Bienvenido ${json.username}, rol: ${json.role}`);
+      } else {
+        msg.textContent = json.message;
+      }
+    } catch (err) {
+      msg.textContent = "Error al conectar con el servidor";
+      console.error(err);
+    }
+  });
+</script>
