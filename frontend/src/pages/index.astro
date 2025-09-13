@@ -4,22 +4,35 @@ import RouteToggle from "../components/RouteToggle.jsx";
 ---
 
 <MainLayout title="Inicio | MiRutaXalapa">
+  <div class="mb-6 flex gap-2">
+    <input
+      type="text"
+      placeholder="Buscar una ruta..."
+      class="flex-1 border rounded-md p-2"
+    />
+    <button class="bg-blue-600 text-white px-4 py-2 rounded-md">Buscar</button>
+  </div>
+
+  <div id="adminButtons" class="gap-2 mb-4 hidden">
+    <button class="bg-green-500 text-white px-4 py-2 rounded-md"
+      >Agregar ruta</button
+    >
+    <button class="bg-red-500 text-white px-4 py-2 rounded-md"
+      >Eliminar ruta</button
+    >
+    <button class="bg-yellow-500 text-white px-4 py-2 rounded-md"
+      >Modificar ruta</button
+    >
+  </div>
+
   <RouteToggle client:load />
 </MainLayout>
 
-<!-- ---
-import RouteList from "../components/RouteList.jsx";
-import Map from "../components/Map.jsx";
-import { routes } from "../utils/mockData.js";
+<script type="module">
+  const user = JSON.parse(localStorage.getItem("user"));
 
-const userPosition = { lat: 19.546, lng: -96.921 }; // Posición simulada
----
-
-<html>
-  <body>
-    <h1>Dashboard de rutas</h1>
-    <RouteList routes={routes} />
-    <Map client:load stops={routes[0].stops} userPosition={userPosition} />
-  </body>
-</html>
- -->
+  if (user && user.role === "admin") {
+    const adminDiv = document.getElementById("adminButtons");
+    adminDiv.classList.remove("hidden");
+  }
+</script>

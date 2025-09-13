@@ -40,20 +40,29 @@ import MainLayout from "../layouts/mainLayout.astro";
     const data = {
       username: formData.get("username"),
       password: formData.get("password"),
-    };
+    }; //data es un objeto javascript no json
 
     try {
       const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        method: "POST", //indica envio de datos por post
+        headers: { "Content-Type": "application/json" }, //indica que se envia un json
+        body: JSON.stringify(data), //convierte data a string json
       });
-
-      const json = await res.json();
+      //res(es un obj Response) es la respuesta del servidor y contiene status, headers,ok,statusText y body(meta datos, stream de bytes)
+      const json = await res.json(); //convierte el stream de bytes a json
 
       if (json.success) {
+        // Guardar sesión en localStorage
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            username: json.username,
+            role: json.role,
+          })
+        );
+
         msg.textContent = "";
-        alert(`Bienvenido ${json.username}, rol: ${json.role}`);
+        window.location.href = "/";
       } else {
         msg.textContent = json.message;
       }

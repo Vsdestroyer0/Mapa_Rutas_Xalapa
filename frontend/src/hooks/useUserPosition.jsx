@@ -22,7 +22,7 @@ export default function useUserPosition() {
             { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
         );
 
-        // cleanup
+        // limpia
         return () => navigator.geolocation.clearWatch(watcher);
     }, []);
 

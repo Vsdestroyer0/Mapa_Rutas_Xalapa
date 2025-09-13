@@ -37,7 +37,7 @@
         "nombre": "AV Xalapa"
       }
     ],
-    "images": ["./Img_Camiones/Bus_1.jpg"]
+    "images": ["../../public/images/bus1.jpg"]
   },
   {
     "_id": {

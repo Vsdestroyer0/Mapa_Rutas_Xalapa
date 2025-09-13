@@ -1,5 +1,5 @@
 // src/components/RouteList.jsx
-import { routes } from "../utils/mockData";
+import routes from "../data/rutas.json";
 
 export default function RouteList() {
   return (
@@ -11,8 +11,9 @@ export default function RouteList() {
             key={r.id}
             className="p-3 bg-white rounded-md shadow hover:bg-gray-100"
           >
+            {/* enlace dinámico a /route/[id].astro */}
             <a href={`/route/${r.id}`} className="block">
-              {r.name}
+              {r.label}
             </a>
           </li>
         ))}
@@ -20,3 +21,4 @@ export default function RouteList() {
     </div>
   );
 }
+

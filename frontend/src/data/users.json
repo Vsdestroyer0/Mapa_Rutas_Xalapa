@@ -5,23 +5,13 @@
     "role": "admin"
   },
   {
-    "username": "user",
+    "username": "emir",
     "password": "123",
     "role": "user"
   },
   {
-    "username": "sdfasdf",
-    "password": "435",
-    "role": "user"
-  },
-  {
-    "username": "emir",
-    "password": "juanito",
-    "role": "user"
-  },
-  {
-    "username": "admin",
-    "password": "dfdsfa",
+    "username": "manuel",
+    "password": "123",
     "role": "user"
   }
 ]

@@ -31,15 +31,15 @@ import MainLayout from "../layouts/mainLayout.astro";
 </MainLayout>
 
 <script type="module">
-  const form = document.getElementById("signupForm");
   const msg = document.getElementById("signupMessage");
+  const form = document.getElementById("signupForm");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
+    const formData = new FormData(form);
     const data = {
-      username: form.username.value,
-      password: form.password.value,
+      username: formData.get("username"),
+      password: formData.get("password"),
     };
 
     try {
@@ -52,8 +52,8 @@ import MainLayout from "../layouts/mainLayout.astro";
       const json = await res.json();
 
       if (json.success) {
-        msg.textContent = "✅ Usuario registrado con éxito";
-        form.reset();
+        msg.textContent = "";
+        alert("✅ Usuario registrado con éxito");
       } else {
         msg.textContent = "❌ " + (json.message || json.error);
       }

@@ -1,40 +1,47 @@
 ---
-// src/pages/route/[id].astro
 import type { GetStaticPaths } from "astro";
 import MainLayout from "../../layouts/mainLayout.astro";
 import Map from "../../components/Map.jsx";
 import BusView from "../../components/BusView.astro";
 import RouteStats from "../../components/RouteStats.jsx";
-import { routes } from "../../utils/mockData.js";
 
-// 1️ Generar rutas estáticas
+import rutas from "../../data/rutas.json";
+
+// 2️ genera las páginas estáticas
 export const getStaticPaths = (() => {
-  return routes.map((r) => ({
+  return rutas.map((r: any) => ({
     params: { id: r.id.toString() },
     props: { route: r },
   }));
 }) satisfies GetStaticPaths;
 
-// 2️ Recibir los datos de la ruta
 const { route } = Astro.props;
-
-// 3️ Posición de ejemplo del usuario (luego puedes obtenerla desde geolocalización)
 ---
 
-<MainLayout title={`Ruta ${route.name}`}>
+<MainLayout title={`Ruta ${route.label}`}>
   <section class="space-y-6">
     <!-- Nombre de la ruta -->
-    <h1 class="text-3xl font-bold text-gray-800">{route.name}</h1>
+    <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
 
-    <!-- Imagen del autobús -->
-    <BusView src={route.busImage} />
+    <!-- Imagen del autobús (si existe) -->
+    {
+      route.images && route.images.length > 0 && (
+        <BusView src={route.images[0]} />
+      )
+    }
 
-    <!-- Stats dinámicos (React) -->
-    <RouteStats route={route} client:load />
+    <!-- Stats dinámicos -->
+    <RouteStats route={route.stops} client:load />
 
     <!-- Mapa interactivo -->
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md">
-      <Map client:load stops={route.stops} />
+      <Map
+        client:only="react"
+        stops={route.stops || []}
+        points={route.points || []}
+        color={route.color}
+        isCircuit={route.type === "circuit"}
+      />
     </div>
   </section>
 </MainLayout>
