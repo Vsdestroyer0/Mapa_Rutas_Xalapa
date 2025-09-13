@@ -1,66 +1,67 @@
 # Mapa de Rutas
-
-## Configuración con Docker (Recomendado)
-
-### Requisitos Previos
-- Docker Desktop
-- MongoDB Compass (para importar datos)
-
-### Instalación con Docker
-1. Clona el repositorio
-2. Abre una terminal en la raíz del proyecto
-3. Ejecuta:
-```bash
-docker-compose up --build
 ```
-4. Abre MongoDB Compass y conecta a `mongodb://localhost:27017`
-5. Crea la base de datos `transportes`
-6. Importa los datos desde `database/rutas.json` a la colección `rutas`
-7. Abre http://localhost:3000 en tu navegador
-
-### Comandos Docker Útiles
-```bash
-# Iniciar contenedores
-docker-compose up
-
-# Detener contenedores
-docker-compose down
-
-# Ver logs
-docker-compose logs
-
-# Reconstruir contenedores
-docker-compose up --build
+Mapa_Rutas_Xalapa/
+│
+├─ backend/ # Backend de prueba con Express
+│ ├─ controllers/ # Lógica de los endpoints
+│ │ └─ authController.js
+│ │ └─ rutasController.js
+│ ├─ scripts/ # un scrip peque para mandar la bd al frontend
+│ │ └─ exportToFrontend.js
+│ ├─ routes/ # Rutas del backend
+│ │ └─ auth.js
+│ │ └─ rutas.js
+│ ├─ data/ # "Base de datos" en JSON
+│ │ └─ usuarios.json
+│ │ └─ rutas.json
+│ └─ server.js # Servidor Express principal
+│
+├─ frontend # Proyecto Astro
+│ ├─ src/pages/ # Páginas
+│ ├─ src/data/ # archivos json para renderizar el listado de rutas
+│ ├─ src/components/ # Componentes
+│ ├─ src/layouts/ # Layouts
+│ ├─ src/hooks/ # hook para saber la posicion del usuario
+│ └─ data/ # JSON de prueba de rutas
+│
 ```
 
-## Configuración Manual (Alternativa)
+# Requisitos Previos
+- Nodejs
 
-1. Clona el repositorio:
+# Correr frontend
+- ir a la carpeta frontend
+  - se vera algo asi: ~\Desktop\rutas\Mapa_Rutas_Xalapa\fronted (depende de donde clonen el repositorio)
+- npm install (reconstruye modulos de node)
+- npm run dev (levanta astro)
 
-2. Instala las dependencias:
-```bash
-cd backend
-npm install
-```
+# Dependencias instaladas para el frontend
+- react (dinamismo)
+- tailwind (estilo)
+- astro (framework principal)
+- leaflet (mapa)
 
-3. Configura la base de datos:
-- Instala MongoDB si no lo tienes instalado
-- Abre MongoDB Compass
-- Crea una base de datos llamada `transportes`
-- Importa los datos desde el archivo `database/rutas.json` a una colección llamada `rutas`
+# Correr backend
+- ir a la carpeta backend
+  - se vera algo asi: ~\Desktop\rutas\Mapa_Rutas_Xalapa\backend (depende de donde clonen el repositorio)
+- npm install (reconstruye modulos de node)
+- nodemon server.js
+  - node server.js (en caso de que no funcione)
 
-4. Inicia el servidor:
-```bash
-cd backend
-node server.js
-```
+# Dependencias instaladas para el backend
+- bcrypt (cifrado de contraseñas)
+- cors (para que el navegador no bloque la comunicacion entre frontend y backend)
+- dotenv (variables de entorno)
+- express (servidor)
+- jsonwebtoken (persistencia de sesion)
+- mongoose (mongo)
+- nodemon(herramienta de desarrollo)
 
-5. Abre el navegador en `http://localhost:3000`
-
-6. Disfruta de los mapas :D
 
 # Cambios a futuro
-- Subir esto a un servidor gratuito 
-- implementación de usuario y superusuario
-- Busqueda por lugares
-
+- Subir frontend a un servicio gratuito 
+- Subir backend a un servidor gratuito 
+- base de datos real con mongo atlas
+  
+# Mensaje
+Solo sigan las instrucciones de como correr backend primero y luego frontend y jalara bien
