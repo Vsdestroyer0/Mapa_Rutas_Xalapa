@@ -29,10 +29,25 @@ import RouteToggle from "../components/RouteToggle.jsx";
 </MainLayout>
 
 <script type="module">
-  const user = JSON.parse(localStorage.getItem("user"));
+  const adminDiv = document.getElementById("adminButtons");
 
-  if (user && user.role === "admin") {
-    const adminDiv = document.getElementById("adminButtons");
-    adminDiv.classList.remove("hidden");
-  }
+  // Consultar al backend si hay sesión
+  const checkSession = async () => {
+    try {
+      const res = await fetch("/api/session", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      console.log("Usuario en sesión:", data);
+      if (data.user && data.user.role === "admin") {
+        adminDiv.classList.remove("hidden");
+      }
+    } catch (err) {
+      console.error("No se pudo verificar la sesión", err);
+    }
+  };
+
+  checkSession();
 </script>

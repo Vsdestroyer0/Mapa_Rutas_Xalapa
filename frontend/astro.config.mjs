@@ -13,6 +13,11 @@ export default defineConfig({
   integrations: [react()],
 
   vite: {
+    server: {
+      proxy: {
+        '/api': 'http://localhost:3000',
+      },
+    },
     plugins: [tailwindcss()]
   }
 });

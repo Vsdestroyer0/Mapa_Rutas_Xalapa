@@ -35,7 +35,7 @@ import MainLayout from "../layouts/mainLayout.astro";
   const form = document.getElementById("signupForm");
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Evita el envío tradicional del formulario
     const formData = new FormData(form);
     const data = {
       username: formData.get("username"),
@@ -43,13 +43,14 @@ import MainLayout from "../layouts/mainLayout.astro";
     };
 
     try {
-      const res = await fetch("http://localhost:3000/api/signup", {
+      const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      //stringify lo que hace es convertir un objeto js a json
 
-      const json = await res.json();
+      const json = await res.json(); //convierte la respuesta a json
 
       if (json.success) {
         msg.textContent = "";

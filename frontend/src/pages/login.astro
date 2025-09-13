@@ -43,26 +43,27 @@ import MainLayout from "../layouts/mainLayout.astro";
     }; //data es un objeto javascript no json
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch("http://localhost:3000/api/login", {
         method: "POST", //indica envio de datos por post
         headers: { "Content-Type": "application/json" }, //indica que se envia un json
+        credentials: "include", //permitir el envio de cookies
         body: JSON.stringify(data), //convierte data a string json
       });
       //res(es un obj Response) es la respuesta del servidor y contiene status, headers,ok,statusText y body(meta datos, stream de bytes)
       const json = await res.json(); //convierte el stream de bytes a json
 
       if (json.success) {
-        // Guardar sesión en localStorage
+        /*   // Guardar sesión en localStorage
         localStorage.setItem(
           "user",
           JSON.stringify({
             username: json.username,
             role: json.role,
           })
-        );
+        ); */
 
         msg.textContent = "";
-        window.location.href = "/";
+        window.location.href = "/"; //de regreso al index
       } else {
         msg.textContent = json.message;
       }
