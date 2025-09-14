@@ -2,7 +2,6 @@
 import { useState } from "react";
 import RouteList from "./RouteList.jsx";
 import ParadasCerca from "./paradasCerca.jsx";
-// componente que quieres mostrar al presionar el botón
 
 export default function RouteToggle() {
     const [showNearby, setShowNearby] = useState(false);

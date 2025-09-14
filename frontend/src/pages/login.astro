@@ -43,7 +43,7 @@ import MainLayout from "../layouts/mainLayout.astro";
     }; //data es un objeto javascript no json
 
     try {
-      const res = await fetch("http://localhost:3000/api/login", {
+      const res = await fetch("/api/login", {
         method: "POST", //indica envio de datos por post
         headers: { "Content-Type": "application/json" }, //indica que se envia un json
         credentials: "include", //permitir el envio de cookies

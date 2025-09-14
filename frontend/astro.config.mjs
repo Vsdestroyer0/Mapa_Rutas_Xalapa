@@ -6,8 +6,6 @@ import react from '@astrojs/react';
 
 import tailwindcss from '@tailwindcss/vite';
 
-// https://astro.
-// build/config
 export default defineConfig({
 
   integrations: [react()],
@@ -15,7 +13,8 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        '/api': 'http://localhost:3000',
+        "/api": 'http://localhost:3000',
+        /*  '/api': 'https://backend-mapa-production.up.railway.app', */
       },
     },
     plugins: [tailwindcss()]

@@ -5,35 +5,45 @@ import Map from "../../components/Map.jsx";
 import BusView from "../../components/BusView.astro";
 import RouteStats from "../../components/RouteStats.jsx";
 
-import rutas from "../../data/rutas.json";
+// src/types/ruta.ts
+interface Ruta {
+  _id: string;
+  id: number;
+  label: string;
+  type?: string;
+  color?: string;
+  points?: [number, number][];
+  stops?: any[];
+  images?: string[];
+}
 
-// 2️ genera las páginas estáticas
-export const getStaticPaths = (() => {
-  return rutas.map((r: any) => ({
-    params: { id: r.id.toString() },
-    props: { route: r },
-  }));
-}) satisfies GetStaticPaths;
+// 1️⃣ Traer todas las rutas desde backend para SSG
+export const getStaticPaths: GetStaticPaths = async () => {
+  const res = await fetch("http://localhost:3000/api/rutas/todas");
+  const rutas = (await res.json()) as Ruta[];
+  console.log(rutas);
+  return rutas.map(
+    (r) => (
+      console.log(r.id),
+      {
+        params: { id: r.id.toString() },
+        props: { route: r }, // pasamos toda la info de la ruta
+      }
+    )
+  );
+};
 
-const { route } = Astro.props;
+const { route } = Astro.props as { route: Ruta };
 ---
 
 <MainLayout title={`Ruta ${route.label}`}>
   <section class="space-y-6">
-    <!-- Nombre de la ruta -->
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
 
-    <!-- Imagen del autobús (si existe) -->
-    {
-      route.images && route.images.length > 0 && (
-        <BusView src={route.images[0]} />
-      )
-    }
+    {route.images?.[0] && <BusView src={route.images[0]} />}
 
-    <!-- Stats dinámicos -->
     <RouteStats route={route.stops} client:load />
 
-    <!-- Mapa interactivo -->
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md">
       <Map
         client:only="react"

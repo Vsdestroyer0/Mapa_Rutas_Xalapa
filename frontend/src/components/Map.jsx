@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 import useUserPosition from "../hooks/useUserPosition.jsx";
 import L from "leaflet";
 
-export default function Map({ stops = [], points = [], color = "#3388ff", isCircuit = false }) {
+export default function Map({ stops, points, color = "#3388ff", isCircuit = false }) {
     const mapRef = useRef(null);
     const routeLayerRef = useRef(null);
     const stopsLayerRef = useRef(null);
