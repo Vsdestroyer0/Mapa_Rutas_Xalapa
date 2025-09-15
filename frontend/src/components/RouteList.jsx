@@ -18,7 +18,6 @@ export default function RouteList() {
     <div >
       <h2 className="text-xl font-bold mb-4">Rutas disponibles</h2>
       <ul className="space-y-2">
-        {console.log(routes)}
         {routes.map((r, index) => (
           <li key={r._id}>
             <a href={`/route/${index}`}>

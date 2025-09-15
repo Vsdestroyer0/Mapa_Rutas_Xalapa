@@ -1,11 +1,11 @@
 ---
-import type { GetStaticPaths } from "astro";
+export const prerender = false; // SSR en vez de SSG
+
 import MainLayout from "../../layouts/mainLayout.astro";
 import Map from "../../components/Map.jsx";
 import BusView from "../../components/BusView.astro";
 import RouteStats from "../../components/RouteStats.jsx";
 
-// src/types/ruta.ts
 interface Ruta {
   _id: string;
   id: number;
@@ -17,23 +17,13 @@ interface Ruta {
   images?: string[];
 }
 
-// 1️⃣ Traer todas las rutas desde backend para SSG
-export const getStaticPaths: GetStaticPaths = async () => {
-  const res = await fetch("http://localhost:3000/api/rutas/todas");
-  const rutas = (await res.json()) as Ruta[];
-  console.log(rutas);
-  return rutas.map(
-    (r) => (
-      console.log(r.id),
-      {
-        params: { id: r.id.toString() },
-        props: { route: r }, // pasamos toda la info de la ruta
-      }
-    )
-  );
-};
+//  id de la URL
+const { id } = Astro.params;
 
-const { route } = Astro.props as { route: Ruta };
+const res = await fetch(`http://localhost:3000/api/rutas/${id}`);
+console.log(res);
+if (!res.ok) throw new Error("Ruta no encontrada");
+const route = (await res.json()) as Ruta;
 ---
 
 <MainLayout title={`Ruta ${route.label}`}>
@@ -41,7 +31,6 @@ const { route } = Astro.props as { route: Ruta };
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
 
     {route.images?.[0] && <BusView src={route.images[0]} />}
-
     <RouteStats route={route.stops} client:load />
 
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md">
