@@ -21,6 +21,7 @@
     "mongoose": "^8.18.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-leaflet": "^5.0.0",
     "solid-js": "^1.9.9",
     "tailwindcss": "^4.1.13"
   }

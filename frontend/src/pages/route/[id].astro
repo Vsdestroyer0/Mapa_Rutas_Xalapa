@@ -1,6 +1,18 @@
 ---
-export const prerender = false; // SSR en vez de SSG
+/* 
+CSR - renderizado del lado del cliente, el server entrtega un HTML vacío y el JS del cliente se encarga de renderizar todo
+SSR - renderizado del lado del servidor, el server entrega un HTML completo y el JS del cliente se encarga de hidratarlo
+SSG - renderizado estático del lado del servidor, el server genera un HTML estático en tiempo de construcción y lo entrega tal cual al cliente (astro por defecto)
+ISR - renderizado estático incremental, el server genera un HTML estático en tiempo de construcción pero lo puede regenerar en tiempo de ejecución (astro con adaptadores)
+MPA - aplicación de página múltiple, cada página es un archivo independiente (astro por defecto)
+SPA - aplicación de página única, todas las páginas se cargan en un solo archivo y el cliente se encarga de navegar entre ellas (astro con adaptadores)
+istlas - isla, una parte de la página se renderiza del lado del servidor y otra parte del lado del cliente (astro por defecto)
 
+
+
+*/
+
+export const prerender = false; // SSR en vez de SSG
 import MainLayout from "../../layouts/mainLayout.astro";
 import Map from "../../components/Map.jsx";
 import BusView from "../../components/BusView.astro";
