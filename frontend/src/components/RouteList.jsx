@@ -6,7 +6,7 @@ export default function RouteList() {
   useEffect(() => {
     // Trae solo los datos necesarios para listar rutas
 
-    fetch("/api/rutas/listado", { credentials: "include" })
+   fetch("/api/rutas/listado", { credentials: "include" })
 
       .then(res => res.json())
       .then(data => setRoutes(data))

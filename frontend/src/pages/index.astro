@@ -4,23 +4,28 @@ import RouteToggle from "../components/RouteToggle.jsx";
 ---
 
 <MainLayout title="Inicio | MiRutaXalapa">
-  <div class="mb-6 flex gap-2">
+  <div 
+  class="mb-6 flex gap-2">
     <input
       type="text"
+      id="busqueda"
       placeholder="Buscar una ruta..."
       class="flex-1 border rounded-md p-2"
     />
-    <button class="bg-blue-600 text-white px-4 py-2 rounded-md">Buscar</button>
+    <button 
+    id="btnbusqueda"
+    class="bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700 transition"
+    >Buscar</button>
   </div>
 
   <div id="adminButtons" class="gap-2 mb-4 hidden">
-    <button class="bg-green-500 text-white px-4 py-2 rounded-md"
+    <button class="bg-green-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-green-600 transition"
       >Agregar ruta</button
     >
-    <button class="bg-red-500 text-white px-4 py-2 rounded-md"
+    <button class="bg-red-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-red-600 transition"
       >Eliminar ruta</button
     >
-    <button class="bg-yellow-500 text-white px-4 py-2 rounded-md"
+    <button class="bg-yellow-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-yellow-600 transition"
       >Modificar ruta</button
     >
   </div>
@@ -48,6 +53,39 @@ import RouteToggle from "../components/RouteToggle.jsx";
       console.error("No se pudo verificar la sesión", err);
     }
   };
+
+  const busqueda = document.getElementById("busqueda");
+  const btnbusqueda = document.getElementById("btnbusqueda");
+
+  // Realizar la búsqueda
+  const buscarRutas = async () => {
+    const palabra = busqueda.value.toLowerCase();
+
+    try {
+      const res = await fetch("api/rutas");
+      const rutas = await res.json();
+
+      // filtración de rutas que coincidan con el nombre
+      const rutasFiltradas = rutas.filter((ruta) =>
+        ruta.name.toLowerCase().includes(palabra)
+      );
+      const eventoBusqueda = new CustomEvent("rutasFiltradas", {
+        detail: rutasFiltradas
+      });
+
+      document.dispatchEvent(eventoBusqueda);
+    } catch (err) {
+      console.error("Error al buscar rutas:", err);
+    }
+  };
+
+  // Evento click del botón de búsqueda
+  btnbusqueda.addEventListener("click", buscarRutas);
+  busqueda.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      buscarRutas();
+    }
+  });
 
   checkSession();
 </script>

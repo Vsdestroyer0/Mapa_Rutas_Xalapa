@@ -17,7 +17,7 @@ export default function RouteToggle() {
     return (
         <div>
             <button
-                className="bg-green-600 text-white px-4 py-2 rounded-md mb-6"
+                className="bg-green-600 text-white px-4 py-2 rounded-md mb-6 cursor-pointer "
                 onClick={() => setShowNearby(!showNearby)}
             >
                 {showNearby ? "Mostrar rutas" : "Buscar paradas cerca de mí"}
@@ -28,5 +28,7 @@ export default function RouteToggle() {
 
         </div>
     );
+
+    
 }
 
