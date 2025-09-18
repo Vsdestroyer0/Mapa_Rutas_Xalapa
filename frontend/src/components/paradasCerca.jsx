@@ -1,3 +1,4 @@
+// paradasCerca.jsx
 import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -8,7 +9,16 @@ export default function NearbyStopsMap() {
     const stopsLayerRef = useRef(null);
 
     const [stops, setStops] = useState([]);
-    const [userPos, setUserPos] = useState([19.542, -96.927]);
+    const [allRoutes, setAllRoutes] = useState([]);
+    const [userPos, setUserPos] = useState([19.542, -96.927]); // posición default
+
+    // ✅ Traer todas las rutas
+    useEffect(() => {
+        fetch("/api/rutas/todas", { credentials: "include" })
+            .then(res => res.json())
+            .then(data => setAllRoutes(data))
+            .catch(err => console.error("Error cargando rutas:", err));
+    }, []);
 
     // ✅ Geolocalización y fetch de paradas cercanas
     useEffect(() => {
@@ -28,7 +38,7 @@ export default function NearbyStopsMap() {
         );
     }, []);
 
-    // ✅ Inicializar mapa
+    // ✅ Inicializar mapa solo una vez
     useEffect(() => {
         if (!mapRef.current) {
             mapRef.current = L.map("map").setView(userPos, 14);
@@ -41,9 +51,9 @@ export default function NearbyStopsMap() {
         }
     }, [userPos]);
 
-    // ✅ Dibujar paradas y rutas bajo demanda
+    // ✅ Dibujar paradas y rutas con OSRM
     useEffect(() => {
-        if (!mapRef.current || !stops.length) return;
+        if (!mapRef.current || !stops.length || !allRoutes.length) return;
         if (!stopsLayerRef.current || !routeLayerRef.current) return;
 
         stopsLayerRef.current.clearLayers();
@@ -64,6 +74,7 @@ export default function NearbyStopsMap() {
             popupAnchor: [0, -30],
         });
 
+        // Marcadores de paradas
         stops.forEach((stop) => {
             L.marker([stop.coordenas.coordinates[1], stop.coordenas.coordinates[0]], {
                 icon: stopIcon,
@@ -75,19 +86,17 @@ export default function NearbyStopsMap() {
                     routeLayerRef.current.clearLayers();
                     const bounds = [];
 
-                    try {
-                        const res = await fetch(`/api/stops/${stop.id}/routes`);
-                        const routes = await res.json();
+                    for (const routeId of stop.routes) {
+                        const route = allRoutes.find((r) => r.id === routeId);
+                        if (!route || !route.points || route.points.length < 2) continue;
 
-                        for (const route of routes) {
-                            if (!route.points || route.points.length < 2) continue;
+                        const coordsParam = route.points.map(([lat, lng]) => `${lng},${lat}`).join(";");
+                        const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
 
-                            const coordsParam = route.points.map(([lat, lng]) => `${lng},${lat}`).join(";");
-                            const url = `https://router.project-osrm.org/route/v1/driving/${coordsParam}?overview=full&geometries=geojson`;
-
-                            const osrmRes = await fetch(url);
-                            const osrmData = await osrmRes.json();
-                            const routeGeo = osrmData?.routes?.[0]?.geometry;
+                        try {
+                            const res = await fetch(url);
+                            const data = await res.json();
+                            const routeGeo = data?.routes?.[0]?.geometry;
                             if (!routeGeo) continue;
 
                             const geoLayer = L.geoJSON(routeGeo, {
@@ -97,15 +106,15 @@ export default function NearbyStopsMap() {
                             geoLayer.eachLayer(layer => {
                                 if (layer.getLatLngs) bounds.push(...layer.getLatLngs());
                             });
+                        } catch (err) {
+                            console.error("OSRM error:", err);
                         }
-
-                        if (bounds.length) mapRef.current.fitBounds(bounds, { padding: [30, 30] });
-                    } catch (err) {
-                        console.error("Error cargando rutas de parada:", err);
                     }
+
+                    if (bounds.length) mapRef.current.fitBounds(bounds, { padding: [30, 30] });
                 });
         });
-    }, [stops, userPos]);
+    }, [stops, userPos, allRoutes]);
 
     return <div id="map" style={{ width: "100%", height: "500px" }} />;
 }
