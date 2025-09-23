@@ -1,30 +1,32 @@
 import React from "react";
 
 const RouteActionsModal = ({ route, onClose }) => {
-    if (!route) return null; // 🔹 Si route es null, no renderizamos nada
+    if (!route) return null; // Si route es null, no renderizamos nada
 
     const handleAction = async (action) => {
         if (action === "ver") {
-            // usamos el índice en vez de _id
-            window.location.href = `/route/${route.index}`;
+            // Navegar SIEMPRE por tu id numérico
+            if (route.id === undefined || route.id === null) {
+                alert("Esta ruta no tiene 'id' definido. No se puede navegar sin 'id'. Actualiza el backend para incluir el campo 'id' en el listado.");
+                return;
+            }
+            window.location.href = `/route/${route.id}`;
         } else if (action === "editar") {
             alert(`Editar ruta: ${route.label}`);
             // Aquí abrirías un formulario o modal de edición
-            
         } else if (action === "eliminar") {
             const confirmar = confirm(
                 `¿Seguro que deseas eliminar la ruta: ${route.label}?`
             );
             if (confirmar) {
                 try {
-                    // Preferimos el _id de Mongo si existe; si no, usamos el índice
-                    const idToDelete = route._id ?? route.index;
-                    if (idToDelete === undefined || idToDelete === null) {
-                        throw new Error("No se encontró un identificador de la ruta para eliminar.");
+                    // Usar SOLO tu ID numérico
+                    if (route.id === undefined || route.id === null) {
+                        throw new Error("Esta ruta no tiene 'id'. Configura el backend para enviar 'id' en /api/rutas/listado.");
                     }
 
-                    const url = `/api/rutas/${encodeURIComponent(idToDelete)}`;
-                    console.log("[DELETE rutas]", { url, idToDelete, hasMongoId: Boolean(route._id), index: route.index, route });
+                    const url = `/api/rutas/${encodeURIComponent(route.id)}`;
+                    console.log("[DELETE rutas]", { url, id: route.id, route });
 
                     const res = await fetch(url, {
                         method: "DELETE",

@@ -33,7 +33,12 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
     if (isAdmin) {
       onSelectRoute({ ...route, index });
     } else {
-      window.location.href = `/route/${index}`;
+      // Navegar SIEMPRE por el id numérico definido por el sistema (no por índice ni _id)
+      if (route.id === undefined || route.id === null) {
+        alert("Esta ruta no tiene 'id'. Pide al backend incluir 'id' en /api/rutas/listado.");
+        return;
+      }
+      window.location.href = `/route/${route.id}`;
     }
   };
 
@@ -47,7 +52,7 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
       <ul className="space-y-3">
         {filteredRoutes.map((route, index) => (
           <li
-            key={route._id || index}
+            key={route.id ?? index}
             onClick={() => handleClick(route, index)}
             className={`block px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 text-gray-700 font-medium cursor-pointer ${isAdmin
                 ? "hover:bg-blue-100 hover:text-blue-700"
