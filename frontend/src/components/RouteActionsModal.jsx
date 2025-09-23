@@ -3,7 +3,7 @@ import React from "react";
 const RouteActionsModal = ({ route, onClose }) => {
     if (!route) return null; // 🔹 Si route es null, no renderizamos nada
 
-    const handleAction = (action) => {
+    const handleAction = async (action) => {
         if (action === "ver") {
             // usamos el índice en vez de _id
             window.location.href = `/route/${route.index}`;
@@ -15,10 +15,51 @@ const RouteActionsModal = ({ route, onClose }) => {
                 `¿Seguro que deseas eliminar la ruta: ${route.label}?`
             );
             if (confirmar) {
-                alert(`Ruta eliminada: ${route.label}`);
-                // Aquí harías la petición DELETE al backend
+                try {
+                    // Preferimos el _id de Mongo si existe; si no, usamos el índice
+                    const idToDelete = route._id ?? route.index;
+                    if (idToDelete === undefined || idToDelete === null) {
+                        throw new Error("No se encontró un identificador de la ruta para eliminar.");
+                    }
+
+                    const url = `/api/rutas/${encodeURIComponent(idToDelete)}`;
+                    console.log("[DELETE rutas]", { url, idToDelete, hasMongoId: Boolean(route._id), index: route.index, route });
+
+                    const res = await fetch(url, {
+                        method: "DELETE",
+                        credentials: "include",
+                        headers: {
+                            "Accept": "application/json",
+                        },
+                    });
+
+                    if (!res.ok) {
+                        let message = `Error al eliminar (HTTP ${res.status})`;
+                        try {
+                            const contentType = res.headers.get("content-type") || "";
+                            if (contentType.includes("application/json")) {
+                                const data = await res.json();
+                                if (data?.message) message = data.message;
+                            } else {
+                                const text = await res.text();
+                                if (text) message = `${message}: ${text}`;
+                            }
+                        } catch (e) {
+                            console.warn("No se pudo leer el cuerpo de error del backend", e);
+                        }
+                        throw new Error(message);
+                    }
+
+                    alert(`Ruta eliminada: ${route.label}`);
+                    // Recargar para actualizar el listado rápidamente
+                    window.location.reload();
+                } catch (err) {
+                    console.error("Fallo al eliminar la ruta:", err);
+                    alert(`No se pudo eliminar la ruta: ${err.message}`);
+                }
             }
         }
+        // Cerramos el modal tras completar la acción
         onClose();
     };
 
