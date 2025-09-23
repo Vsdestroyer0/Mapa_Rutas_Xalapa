@@ -43,7 +43,7 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg">
+    <div className="w-full p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Rutas disponibles</h2>
       {error && <p className="text-red-500">{error}</p>}
       {filteredRoutes.length === 0 && !error && (
