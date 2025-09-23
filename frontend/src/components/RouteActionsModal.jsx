@@ -10,6 +10,7 @@ const RouteActionsModal = ({ route, onClose }) => {
         } else if (action === "editar") {
             alert(`Editar ruta: ${route.label}`);
             // Aquí abrirías un formulario o modal de edición
+            
         } else if (action === "eliminar") {
             const confirmar = confirm(
                 `¿Seguro que deseas eliminar la ruta: ${route.label}?`
