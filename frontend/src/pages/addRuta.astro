@@ -1,8 +1,15 @@
 ---
 import MainLayout from "../layouts/mainLayout.astro";
+import AddRutaComponent from "../components/AddRuta.jsx";
+const open = true; // o controlarlo desde estado si quieres
 ---
-
-<MainLayout title="Agregar Ruta | MiRutaXalapa">
-    
-
+<MainLayout title="Agregar Ruta">
+  <div class="min-h-[60vh]">
+    <div class="mb-4">
+      <a href="/" class="text-blue-600 hover:underline">← Volver</a>
+    </div>
+    <div id="add-ruta-root">
+      <AddRutaComponent client:only="react" open={open} />
+    </div>
+  </div>
 </MainLayout>
