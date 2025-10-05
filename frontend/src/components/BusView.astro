@@ -1,9 +1,13 @@
 ---
-// src/components/BusView.astro
-const { src } = Astro.props;
+import { CldImage } from "astro-cloudinary";
+const { src, alt = "Autobús" } = Astro.props;
 ---
 
 <div class="p-4 bg-white rounded-lg shadow-md mb-4 flex flex-col items-center">
   <h4 class="text-lg font-semibold mb-2 text-gray-800">Vista del autobús</h4>
-  <img src={src} alt="Autobús" class="w-48 h-auto rounded-md shadow-sm" />
+  <CldImage
+    src={src}
+    alt={alt}
+    class="max-w-full h-auto rounded-md shadow-sm"
+  />
 </div>
