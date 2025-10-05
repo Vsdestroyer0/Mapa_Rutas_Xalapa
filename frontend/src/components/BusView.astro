@@ -1,13 +1,19 @@
 ---
 import { CldImage } from "astro-cloudinary";
 const { src, alt = "Autobús" } = Astro.props;
+const cloudName = import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME;
+const useCloudinary = Boolean(cloudName);
 ---
 
 <div class="p-4 bg-white rounded-lg shadow-md mb-4 flex flex-col items-center">
   <h4 class="text-lg font-semibold mb-2 text-gray-800">Vista del autobús</h4>
-  <CldImage
-    src={src}
-    alt={alt}
-    class="max-w-full h-auto rounded-md shadow-sm"
-  />
+  {useCloudinary ? (
+    <CldImage
+      src={src}
+      alt={alt}
+      class="max-w-full h-auto rounded-md shadow-sm"
+    />
+  ) : (
+    <img src={src} alt={alt} loading="lazy" class="max-w-full h-auto rounded-md shadow-sm" />
+  )}
 </div>
