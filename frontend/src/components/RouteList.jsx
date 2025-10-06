@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
+const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute, viewMode }) => {
   const [routes, setRoutes] = useState([]);
   const [error, setError] = useState(null);
+  const [prefs, setPrefs] = useState({ favoritos: [], ocultos: [] });
 
+  // Cargar rutas desde API
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
@@ -23,17 +25,92 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
     fetchRoutes();
   }, []);
 
+  // Cargar preferencias del usuario desde localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedPrefs = JSON.parse(localStorage.getItem(`prefs_${user.username}`) || '{"favoritos":[],"ocultos":[]}');
+    setPrefs(storedPrefs);
+  }, []);
+
+  // Guardar preferencias en localStorage
+  const savePrefs = (newPrefs) => {
+    setPrefs(newPrefs);
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    localStorage.setItem(`prefs_${user.username}`, JSON.stringify(newPrefs));
+  };
+
+  const toggleFavorito = (id) => {
+    // Si ya está en favoritos, la quitamos
+    if (prefs.favoritos.includes(id)) {
+      const updated = {
+        ...prefs,
+        favoritos: prefs.favoritos.filter(f => f !== id)
+      };
+      setPrefs(updated);
+      savePrefs(updated);
+    } else {
+      // Si está en ocultos, la sacamos de ocultos
+      let newOcultos = prefs.ocultos.filter(o => o !== id);
+
+      const updated = {
+        ...prefs,
+        favoritos: [...prefs.favoritos, id],
+        ocultos: newOcultos
+      };
+      setPrefs(updated);
+      savePrefs(updated);
+    }
+  };
+
+  const toggleOculto = (id) => {
+    // Si ya está en ocultos, la quitamos
+    if (prefs.ocultos.includes(id)) {
+      const updated = {
+        ...prefs,
+        ocultos: prefs.ocultos.filter(o => o !== id)
+      };
+      setPrefs(updated);
+      savePrefs(updated);
+    } else {
+      // Si está en favoritos, la sacamos de favoritos
+      let newFavoritos = prefs.favoritos.filter(f => f !== id);
+
+      const updated = {
+        ...prefs,
+        ocultos: [...prefs.ocultos, id],
+        favoritos: newFavoritos
+      };
+      setPrefs(updated);
+      savePrefs(updated);
+    }
+  };
+
+
+
+  // Filtrar rutas según viewMode
+  const visibleRoutes = routes.filter(r => {
+    if (viewMode === "favoritos") {
+      return prefs.favoritos.includes(r.id) && !prefs.ocultos.includes(r.id);
+    }
+    if (viewMode === "ocultos") {
+      return prefs.ocultos.includes(r.id);
+    }
+    // viewMode === "all"
+    return !prefs.ocultos.includes(r.id);
+  });
+
+
+  // Filtrar por palabra de búsqueda
   const filteredRoutes = palabraBusqueda
-    ? routes.filter((r) =>
+    ? visibleRoutes.filter(r =>
       r.label.toLowerCase().includes(palabraBusqueda.toLowerCase())
     )
-    : routes;
+    : visibleRoutes;
 
   const handleClick = (route, index) => {
     if (isAdmin) {
       onSelectRoute({ ...route, index });
     } else {
-      // Navegar SIEMPRE por el id numérico definido por el sistema (no por índice ni _id)
       if (route.id === undefined || route.id === null) {
         alert("Esta ruta no tiene 'id'. Pide al backend incluir 'id' en /api/rutas/listado.");
         return;
@@ -54,12 +131,39 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
           <li
             key={route.id ?? index}
             onClick={() => handleClick(route, index)}
-            className={`block px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 text-gray-700 font-medium cursor-pointer ${isAdmin
-                ? "hover:bg-blue-100 hover:text-blue-700"
-                : "hover:bg-gray-100 hover:text-gray-800"
+            className={`flex justify-between items-center px-4 py-2 rounded-lg shadow-sm transition-colors duration-200 text-gray-700 font-medium cursor-pointer ${isAdmin
+              ? "hover:bg-blue-100 hover:text-blue-700"
+              : "hover:bg-gray-100 hover:text-gray-800"
               }`}
           >
-            {route.label || "Ruta sin nombre"}
+            <span>
+              {prefs.favoritos.includes(route.id) ? "⭐ " : ""}
+              {route.label || "Ruta sin nombre"}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorito(route.id);
+                }}
+                className={`text-yellow-500 hover:text-yellow-700 ${prefs.favoritos.includes(route.id) ? "font-bold" : ""
+                  }`}
+              >
+                ⭐
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleOculto(route.id);
+                }}
+                className={`text-red-500 hover:text-red-700 ${prefs.ocultos.includes(route.id) ? "font-bold" : ""
+                  }`}
+              >
+                🚫
+              </button>
+            </div>
+
+
           </li>
         ))}
       </ul>
@@ -68,7 +172,6 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute }) => {
 };
 
 export default RouteList;
-
 
 /* import { useEffect, useState } from "react";
 
