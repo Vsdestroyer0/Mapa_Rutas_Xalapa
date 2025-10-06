@@ -32,9 +32,19 @@ interface Ruta {
 //  id de la URL
 const { id } = Astro.params;
 
-const res = await fetch(`http://localhost:3000/api/rutas/${id}`);
-console.log(res);
+// Determinar base URL según entorno
+const baseURL =
+  typeof window === "undefined"
+    ? import.meta.env.PUBLIC_BACKEND_URL ||
+      "https://backend-mapa-production.up.railway.app"
+    : "";
+
+// Fetch seguro para SSR y navegador
+const res = await fetch(`${baseURL}/api/rutas/${id}`, {
+  credentials: "include",
+});
 if (!res.ok) throw new Error("Ruta no encontrada");
+
 const route = (await res.json()) as Ruta;
 ---
 
@@ -42,11 +52,7 @@ const route = (await res.json()) as Ruta;
   <section class="space-y-6">
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
 
-    {(
-      (route.images && route.images.length > 0) || true
-    ) && (
-      <BusView src={route.images?.[0] ?? `bus_${route.id}`} />
-    )}
+    {route.images?.[0] && <BusView src={route.images[0]} />}
     <RouteStats route={route.stops} client:only="react" />
 
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md">

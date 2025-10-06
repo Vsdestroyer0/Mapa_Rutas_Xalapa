@@ -14,7 +14,8 @@ export default function NearbyStopsMap() {
 
     // ✅ Traer todas las rutas
     useEffect(() => {
-        fetch("/api/rutas/todas", { credentials: "include" })
+        const baseURL = import.meta.env.PUBLIC_API_URL;
+        fetch(`${baseURL}/api/rutas/todas`, { credentials: "include" })
             .then(res => res.json())
             .then(data => setAllRoutes(data))
             .catch(err => console.error("Error cargando rutas:", err));
@@ -29,7 +30,8 @@ export default function NearbyStopsMap() {
                 const pos = [coords.latitude, coords.longitude];
                 setUserPos(pos);
 
-                fetch(`/api/stops/nearby?lat=${coords.latitude}&lng=${coords.longitude}&limit=20`)
+                baseURL = import.meta.env.PUBLIC_API_URL;
+                fetch(`${baseURL}/api/stops/nearby?lat=${coords.latitude}&lng=${coords.longitude}&limit=20`)
                     .then((res) => res.json())
                     .then((data) => setStops(data))
                     .catch((err) => console.error("Error fetching stops:", err));

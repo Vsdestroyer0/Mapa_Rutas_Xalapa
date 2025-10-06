@@ -17,7 +17,8 @@ export default function RouteManager() {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                const res = await fetch("/api/session", { credentials: "include" });
+                const baseURL = import.meta.env.PUBLIC_API_URL;
+                const res = await fetch(`${baseURL}/api/session`, { credentials: "include" });
                 const data = await res.json();
                 if (data.user?.role === "admin") setIsAdmin(true);
             } catch (err) {

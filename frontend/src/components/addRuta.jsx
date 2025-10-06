@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useState } from "react";
  * - Botón para agregar paradas (stops: { coordenas: [lat,lng], nombre }[] ).
  * - Envía POST a /api/rutas con el JSON de la ruta.
  */
-export default function AddRuta({ open = true, onClose = () => {}, onCreated = () => {} }) {
+export default function AddRuta({ open = true, onClose = () => { }, onCreated = () => { } }) {
   const [id, setId] = useState("");
   const [label, setLabel] = useState("");
   const [type, setType] = useState("line"); // 'line' | 'circuit'
@@ -83,7 +83,8 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
     if (!q) return;
     setLoadingStops(true);
     try {
-      const res = await fetch(`/api/stops/search?nombre=${encodeURIComponent(q)}`, {
+      const baseURL = import.meta.env.PUBLIC_API_URL;
+      const res = await fetch(`${baseURL}/api/stops/search?nombre=${encodeURIComponent(q)}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`Error buscando paradas (${res.status})`);
@@ -136,7 +137,8 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
         stops,
         images: [`bus_${Number(id)}`],
       };
-      const res = await fetch("/api/rutas", {
+      const baseURL = import.meta.env.PUBLIC_API_URL;
+      const res = await fetch(`${baseURL}/api/rutas`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -153,7 +155,7 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
             const text = await res.text();
             if (text) message = `${message}: ${text}`;
           }
-        } catch {}
+        } catch { }
         throw new Error(message);
       }
       setOkMsg("Ruta creada correctamente.");

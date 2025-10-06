@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
  * Componente para editar una Ruta existente usando TU id numérico (no _id de Mongo).
  * - Igual UX que `addRuta.jsx`, pero precarga y hace PUT a /api/rutas/:id
  */
-export default function EditRuta({ open = true, routeId, onClose = () => {}, onUpdated = () => {} }) {
+export default function EditRuta({ open = true, routeId, onClose = () => { }, onUpdated = () => { } }) {
   const [id, setId] = useState("");
   const [label, setLabel] = useState("");
   const [type, setType] = useState("line"); // 'line' | 'circuit'
@@ -38,7 +38,8 @@ export default function EditRuta({ open = true, routeId, onClose = () => {}, onU
       setLoading(true);
       try {
         if (routeId === undefined || routeId === null) throw new Error("Falta routeId");
-        const res = await fetch(`/api/rutas/${encodeURIComponent(routeId)}`, { credentials: "include" });
+        const baseURL = import.meta.env.PUBLIC_API_URL;
+        const res = await fetch(`${baseURL}/api/rutas/${encodeURIComponent(routeId)}`, { credentials: "include" });
         if (!res.ok) throw new Error(`Error cargando ruta (HTTP ${res.status})`);
         const data = await res.json();
         if (ignore) return;
@@ -105,7 +106,8 @@ export default function EditRuta({ open = true, routeId, onClose = () => {}, onU
     if (!q) return;
     setLoadingStops(true);
     try {
-      const res = await fetch(`/api/stops/search?nombre=${encodeURIComponent(q)}`, {
+      const baseURL = import.meta.env.PUBLIC_API_URL;
+      const res = await fetch(`${baseURL}/api/stops/search?nombre=${encodeURIComponent(q)}`, {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`Error buscando paradas (${res.status})`);
@@ -154,7 +156,8 @@ export default function EditRuta({ open = true, routeId, onClose = () => {}, onU
         stops,
         images: [`bus_${Number(id)}`],
       };
-      const url = `/api/rutas/${encodeURIComponent(id)}`;
+      const baseURL = import.meta.env.PUBLIC_API_URL;
+      const url = `${baseURL}/api/rutas/${encodeURIComponent(id)}`;
       const res = await fetch(url, {
         method: "PUT",
         credentials: "include",
@@ -172,7 +175,7 @@ export default function EditRuta({ open = true, routeId, onClose = () => {}, onU
             const text = await res.text();
             if (text) message = `${message}: ${text}`;
           }
-        } catch {}
+        } catch { }
         throw new Error(message);
       }
       setOkMsg("Ruta actualizada correctamente.");

@@ -9,7 +9,7 @@ const RouteList = ({ palabraBusqueda, isAdmin, onSelectRoute, viewMode }) => {
   useEffect(() => {
     const fetchRoutes = async () => {
       try {
-        const res = await fetch("/api/rutas/listado", { credentials: "include" });
+        const res = await fetch(`${import.meta.env.PUBLIC_API_URL}/api/rutas/listado`, { credentials: "include" });
         if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
         const data = await res.json();
         if (Array.isArray(data)) {

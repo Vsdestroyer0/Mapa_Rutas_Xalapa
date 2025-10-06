@@ -9,15 +9,16 @@ export default function SearchBar({ onSearch }) {
     //Error es para mostrar un mensaje de error
     const [error, setError] = useState("");
     //Results es para mostrar los resultados de la búsqueda
-    const [results, setResults] = useState([]); 
+    const [results, setResults] = useState([]);
 
     const fetchStopByName = async (name) => {
         //URL de la API
-        const url = `/api/stops/search?nombre=${encodeURIComponent(name)}`;
+        const baseURL = import.meta.env.PUBLIC_API_URL;
+        const url = `${baseURL}/api/stops/search?nombre=${encodeURIComponent(name)}`;
         //Hacemos la petición a la API
-        const res = await fetch(url, { 
+        const res = await fetch(url, {
             //include: include cookies
-            credentials: "include" 
+            credentials: "include"
         });
         if (!res.ok) throw new Error(`No se pudo buscar la parada: ${name}`);
         const data = await res.json();
@@ -27,7 +28,8 @@ export default function SearchBar({ onSearch }) {
     };
 
     const fetchRouteById = async (routeId) => {
-        const res = await fetch(`/api/rutas/${routeId}`, { credentials: "include" });
+        const baseURL = import.meta.env.PUBLIC_API_URL;
+        const res = await fetch(`${baseURL}/api/rutas/${routeId}`, { credentials: "include" });
         if (!res.ok) throw new Error(`Ruta ${routeId} no encontrada`);
         return res.json();
     };

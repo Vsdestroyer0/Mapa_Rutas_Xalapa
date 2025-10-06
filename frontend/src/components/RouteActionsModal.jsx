@@ -28,8 +28,8 @@ const RouteActionsModal = ({ route, onClose }) => {
                     if (route.id === undefined || route.id === null) {
                         throw new Error("Esta ruta no tiene 'id'. Configura el backend para enviar 'id' en /api/rutas/listado.");
                     }
-
-                    const url = `/api/rutas/${encodeURIComponent(route.id)}`;
+                    const baseURL = import.meta.env.PUBLIC_API_URL;
+                    const url = `${baseURL}/api/rutas/${encodeURIComponent(route.id)}`;
                     console.log("[DELETE rutas]", { url, id: route.id, route });
 
                     const res = await fetch(url, {
