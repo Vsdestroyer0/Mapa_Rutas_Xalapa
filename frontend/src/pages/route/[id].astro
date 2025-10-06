@@ -32,12 +32,7 @@ interface Ruta {
 //  id de la URL
 const { id } = Astro.params;
 
-// Determinar base URL según entorno
-const baseURL =
-  typeof window === "undefined"
-    ? import.meta.env.PUBLIC_BACKEND_URL ||
-      "https://backend-mapa-production.up.railway.app"
-    : "";
+const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 
 // Fetch seguro para SSR y navegador
 const res = await fetch(`${baseURL}/api/rutas/${id}`, {

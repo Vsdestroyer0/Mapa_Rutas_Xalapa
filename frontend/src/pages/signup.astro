@@ -1,11 +1,14 @@
 ---
+export const prerender = false; // SSR
 import MainLayout from "../layouts/mainLayout.astro";
+
+const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 ---
 
 <MainLayout title="Registro | MiRutaXalapa">
   <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
     <h2 class="text-2xl font-bold mb-4">Registrarse</h2>
-    <form id="signupForm" class="space-y-4">
+    <form id="signupForm" data-base-url={baseURL} class="space-y-4">
       <input
         type="text"
         name="username"
@@ -23,41 +26,40 @@ import MainLayout from "../layouts/mainLayout.astro";
       <button
         type="submit"
         class="w-full bg-green-600 text-white py-2 rounded-md cursor-pointer hover:bg-green-700 transition"
-        >Registrarse</button
       >
+        Registrarse
+      </button>
     </form>
     <p id="signupMessage" class="mt-2 text-red-500"></p>
   </div>
 </MainLayout>
 
 <script type="module">
-  const msg = document.getElementById("signupMessage");
   const form = document.getElementById("signupForm");
+  const msg = document.getElementById("signupMessage");
+  const baseURL = form.dataset.baseUrl; // URL pasada desde SSR
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Evita el envío tradicional del formulario
-    const formData = new FormData(form);
+    e.preventDefault();
     const data = {
-      username: formData.get("username"),
-      password: formData.get("password"),
+      username: form.username.value,
+      password: form.password.value,
     };
 
     try {
-      const baseURL = import.meta.env.PUBLIC_API_URL;
-
       const res = await fetch(`${baseURL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(data),
       });
-      //stringify lo que hace es convertir un objeto js a json
 
-      const json = await res.json(); //convierte la respuesta a json
+      const json = await res.json();
 
       if (json.success) {
         msg.textContent = "";
         alert("✅ Usuario registrado con éxito");
+        form.reset();
       } else {
         msg.textContent = "❌ " + (json.message || json.error);
       }

@@ -30,8 +30,8 @@ export default function NearbyStopsMap() {
                 const pos = [coords.latitude, coords.longitude];
                 setUserPos(pos);
 
-                baseURL = import.meta.env.PUBLIC_API_URL;
-                fetch(`${baseURL}/api/stops/nearby?lat=${coords.latitude}&lng=${coords.longitude}&limit=20`)
+                const baseURL = import.meta.env.PUBLIC_API_URL;
+                fetch(`${baseURL}/api/stops/nearby?lat=${coords.latitude}&lng=${coords.longitude}&limit=20`, { credentials: "include" })
                     .then((res) => res.json())
                     .then((data) => setStops(data))
                     .catch((err) => console.error("Error fetching stops:", err));

@@ -6,7 +6,7 @@ import ParadasCerca from "./paradasCerca.jsx";
 import AdminControls from "./AdminControls.jsx";
 import RouteActionsModal from "./RouteActionsModal.jsx";
 
-export default function RouteManager() {
+export default function RouteManager({ baseURL }) {
     const [showNearby, setShowNearby] = useState(false);
     const [showPair, setShowPair] = useState(false);
     const [query, setQuery] = useState("");
@@ -16,50 +16,52 @@ export default function RouteManager() {
 
     useEffect(() => {
         const checkSession = async () => {
+            if (!baseURL) return; // evitar fetch si no hay URL
             try {
-                const baseURL = import.meta.env.PUBLIC_API_URL;
-                const res = await fetch(`${baseURL}/api/session`, { credentials: "include" });
+                const res = await fetch(`${baseURL}/api/session`, {
+                    credentials: "include",
+                });
+                if (!res.ok) throw new Error("No autorizado");
                 const data = await res.json();
                 if (data.user?.role === "admin") setIsAdmin(true);
             } catch (err) {
                 console.error("No se pudo verificar la sesión:", err);
             }
         };
+
         checkSession();
-    }, []);
+    }, [baseURL]);
 
     return (
         <div className="max-w-3xl mx-auto p-4">
-
-            {/* Botones de filtro de vista */}
+            {/* Filtros de vista */}
             <div className="flex gap-2 mb-6">
                 <button
-                    className={`px-4 py-2 rounded-md ${viewMode === "all" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
+                    className={`px-4 py-2 rounded-md ${viewMode === "all" ? "bg-blue-600 text-white" : "bg-gray-200"
+                        }`}
                     onClick={() => setViewMode("all")}
                 >
                     Todas
                 </button>
                 <button
-                    className={`px-4 py-2 rounded-md ${viewMode === "favoritos" ? "bg-yellow-500 text-white" : "bg-gray-200"}`}
+                    className={`px-4 py-2 rounded-md ${viewMode === "favoritos" ? "bg-yellow-500 text-white" : "bg-gray-200"
+                        }`}
                     onClick={() => setViewMode("favoritos")}
                 >
                     Favoritas
                 </button>
                 <button
-                    className={`px-4 py-2 rounded-md ${viewMode === "ocultos" ? "bg-red-500 text-white" : "bg-gray-200"}`}
+                    className={`px-4 py-2 rounded-md ${viewMode === "ocultos" ? "bg-red-500 text-white" : "bg-gray-200"
+                        }`}
                     onClick={() => setViewMode("ocultos")}
                 >
                     Ocultas
                 </button>
             </div>
 
-            {/* Controles de admin */}
             {isAdmin && <AdminControls />}
-
-            {/* Barra de búsqueda */}
             <SearchBar onSearch={setQuery} />
 
-            {/* Botones de funciones adicionales */}
             <div className="flex gap-2 mb-6">
                 <button
                     className="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
@@ -67,7 +69,6 @@ export default function RouteManager() {
                 >
                     {showNearby ? "Mostrar rutas" : "Buscar paradas cerca de mí"}
                 </button>
-
                 <button
                     className="bg-indigo-600 text-white px-4 py-2 rounded-md cursor-pointer"
                     onClick={() => setShowPair((v) => !v)}
@@ -76,10 +77,7 @@ export default function RouteManager() {
                 </button>
             </div>
 
-            {/* Búsqueda por dos paradas */}
             {showPair && <InicioDestino />}
-
-            {/* Listado de rutas o paradas cercanas */}
             {showNearby ? (
                 <ParadasCerca />
             ) : (
@@ -87,16 +85,12 @@ export default function RouteManager() {
                     palabraBusqueda={query}
                     isAdmin={isAdmin}
                     onSelectRoute={setSelectedRoute}
-                    viewMode={viewMode} // ✅ Pasamos viewMode a RouteList
+                    viewMode={viewMode}
                 />
             )}
 
-            {/* Modal solo para admins */}
             {isAdmin && (
-                <RouteActionsModal
-                    route={selectedRoute}
-                    onClose={() => setSelectedRoute(null)}
-                />
+                <RouteActionsModal route={selectedRoute} onClose={() => setSelectedRoute(null)} />
             )}
         </div>
     );

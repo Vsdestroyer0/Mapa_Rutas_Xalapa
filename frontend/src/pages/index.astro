@@ -2,9 +2,9 @@
 import MainLayout from "../layouts/mainLayout.astro";
 import RouteManager from "../components/RouteManager.jsx";
 
+const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 ---
 
-
 <MainLayout title="Inicio | MiRutaXalapa">
-  <RouteManager client:only="react" />
+  <RouteManager client:only="react" baseURL={baseURL} />
 </MainLayout>

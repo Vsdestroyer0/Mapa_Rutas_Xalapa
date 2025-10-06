@@ -1,11 +1,14 @@
 ---
+export const prerender = false; // SSR
 import MainLayout from "../layouts/mainLayout.astro";
+
+const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
 ---
 
 <MainLayout title="Iniciar sesión | MiRutaXalapa">
   <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
     <h2 class="text-2xl font-bold mb-4">Iniciar sesión</h2>
-    <form id="loginForm" class="space-y-4">
+    <form id="loginForm" data-base-url={baseURL} class="space-y-4">
       <input
         type="text"
         name="username"
@@ -22,52 +25,46 @@ import MainLayout from "../layouts/mainLayout.astro";
       />
       <button
         type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-md cursor-pointer hover-bg-blue-700 transition"
-        >Entrar</button
+        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
       >
+        Entrar
+      </button>
     </form>
     <p id="loginMessage" class="mt-2 text-red-500"></p>
   </div>
 </MainLayout>
 
 <script type="module">
-  const msg = document.getElementById("loginMessage");
   const form = document.getElementById("loginForm");
+  const msg = document.getElementById("loginMessage");
+  const baseURL = form.dataset.baseUrl; // URL pasada desde SSR
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    const formData = new FormData(form);
     const data = {
-      username: formData.get("username"),
-      password: formData.get("password"),
-    }; //data es un objeto javascript no json
+      username: form.username.value,
+      password: form.password.value,
+    };
 
     try {
-      const baseURL = import.meta.env.PUBLIC_API_URL;
       const res = await fetch(`${baseURL}/api/login`, {
-        method: "POST", //indica envio de datos por post
-        headers: { "Content-Type": "application/json" }, //indica que se envia un json
-        credentials: "include", //permitir el envio de cookies
-        body: JSON.stringify(data), //convierte data a string json
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // enviar cookies cross-site
+        body: JSON.stringify(data),
       });
-      //res(es un obj Response) es la respuesta del servidor y contiene status, headers,ok,statusText y body(meta datos, stream de bytes)
-      const json = await res.json(); //convierte el stream de bytes a json
+
+      const json = await res.json();
 
       if (json.success) {
-        // Guardar sesión en localStorage
         localStorage.setItem(
           "user",
-          JSON.stringify({
-            username: json.username,
-            role: json.role,
-          })
+          JSON.stringify({ username: json.username, role: json.role })
         );
-
         msg.textContent = "";
-        window.location.href = "/"; //de regreso al index
+        window.location.href = "/";
       } else {
-        msg.textContent = json.message;
+        msg.textContent = "❌ " + (json.message || "Error de login");
       }
     } catch (err) {
       msg.textContent = "Error al conectar con el servidor";
