@@ -1,0 +1,17 @@
+---
+import MainLayout from "../../layouts/mainLayout.astro";
+import EditRuta from "../../components/EditRuta.jsx";
+export const prerender = false;
+const { id } = Astro.params;
+const open = true;
+---
+<MainLayout title={`Editar Ruta ${id}`}>
+  <div class="min-h-[60vh]">
+    <div class="mb-4">
+      <a href="/" class="text-blue-600 hover:underline">← Volver</a>
+    </div>
+    <div id="edit-ruta-root">
+      <EditRuta client:only="react" open={open} routeId={id} />
+    </div>
+  </div>
+</MainLayout>

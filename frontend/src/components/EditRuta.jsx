@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 
 /**
- * Componente para crear una nueva Ruta usando TU id numérico (no _id de Mongo).
- * - Panel lateral derecho (drawer) con formulario de: id, label, type, color.
- * - Botón para editar puntos (points: [ [lat,lng], ... ]).
- * - Botón para agregar paradas (stops: { coordenas: [lat,lng], nombre }[] ).
- * - Envía POST a /api/rutas con el JSON de la ruta.
+ * Componente para editar una Ruta existente usando TU id numérico (no _id de Mongo).
+ * - Igual UX que `addRuta.jsx`, pero precarga y hace PUT a /api/rutas/:id
  */
-export default function AddRuta({ open = true, onClose = () => {}, onCreated = () => {} }) {
+export default function EditRuta({ open = true, routeId, onClose = () => {}, onUpdated = () => {} }) {
   const [id, setId] = useState("");
   const [label, setLabel] = useState("");
   const [type, setType] = useState("line"); // 'line' | 'circuit'
@@ -15,6 +12,7 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
   const [points, setPoints] = useState([]); // [[lat, lng], ...]
   const [stops, setStops] = useState([]); // [{ coordenas:[lat,lng], nombre }]
 
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [okMsg, setOkMsg] = useState("");
@@ -34,8 +32,34 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
   const [stopError, setStopError] = useState("");
 
   useEffect(() => {
+    let ignore = false;
+    async function fetchRoute() {
+      setError("");
+      setLoading(true);
+      try {
+        if (routeId === undefined || routeId === null) throw new Error("Falta routeId");
+        const res = await fetch(`/api/rutas/${encodeURIComponent(routeId)}`, { credentials: "include" });
+        if (!res.ok) throw new Error(`Error cargando ruta (HTTP ${res.status})`);
+        const data = await res.json();
+        if (ignore) return;
+        setId(String(data?.id ?? ""));
+        setLabel(String(data?.label ?? ""));
+        setType(String(data?.type ?? "line"));
+        setColor(String(data?.color ?? "#2563eb"));
+        setPoints(Array.isArray(data?.points) ? data.points : []);
+        setStops(Array.isArray(data?.stops) ? data.stops : []);
+      } catch (e) {
+        setError(e.message || "No se pudo cargar la ruta");
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    }
+    if (open) fetchRoute();
+    return () => { ignore = true; };
+  }, [open, routeId]);
+
+  useEffect(() => {
     if (!open) {
-      // limpiar mensajes al cerrar
       setError("");
       setOkMsg("");
     }
@@ -43,13 +67,11 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
 
   const canSave = useMemo(() => {
     return (
-      String(id).trim() !== "" &&
-      !Number.isNaN(Number(id)) &&
       String(label).trim() !== "" &&
       (type === "line" || type === "circuit") &&
       /^#([0-9a-fA-F]{3}){1,2}([0-9a-fA-F]{2})?$/.test(color)
     );
-  }, [id, label, type, color]);
+  }, [label, type, color]);
 
   const addPoint = () => {
     const lat = parseFloat(String(tempPointLat).replace(",", "."));
@@ -88,7 +110,6 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
       });
       if (!res.ok) throw new Error(`Error buscando paradas (${res.status})`);
       const data = await res.json();
-      // data esperado: [{ nombre, coordenas, routes? }]
       setStopResults(Array.isArray(data) ? data : []);
     } catch (e) {
       setStopError(e.message || "Error buscando paradas");
@@ -98,17 +119,14 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
   };
 
   const addStopFromResult = (s) => {
-    // s.coordenas puede venir como [lat,lng] o como GeoJSON {type:"Point", coordinates:[lng,lat]}
     let latLng = null;
     if (Array.isArray(s?.coordenas)) {
-      // formato de ruta (array [lat, lng])
       const [lat, lng] = s.coordenas;
       if (Number.isFinite(lat) && Number.isFinite(lng)) latLng = [lat, lng];
     } else if (s?.coordenas?.type === "Point" && Array.isArray(s?.coordenas?.coordinates)) {
       const [lng, lat] = s.coordenas.coordinates;
       if (Number.isFinite(lat) && Number.isFinite(lng)) latLng = [lat, lng];
     }
-
     if (!latLng) return;
     const nombre = s?.nombre || "Parada";
     setStops((prev) => [...prev, { coordenas: latLng, nombre }]);
@@ -136,8 +154,9 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
         stops,
         images: [`bus_${Number(id)}`],
       };
-      const res = await fetch("/api/rutas", {
-        method: "POST",
+      const url = `/api/rutas/${encodeURIComponent(id)}`;
+      const res = await fetch(url, {
+        method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
@@ -156,15 +175,8 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
         } catch {}
         throw new Error(message);
       }
-      setOkMsg("Ruta creada correctamente.");
-      if (typeof onCreated === "function") onCreated();
-      // Opcional: limpiar
-      setId("");
-      setLabel("");
-      setType("line");
-      setColor("#2563eb");
-      setPoints([]);
-      setStops([]);
+      setOkMsg("Ruta actualizada correctamente.");
+      if (typeof onUpdated === "function") onUpdated();
     } catch (e) {
       setError(e.message || "No se pudo guardar");
     } finally {
@@ -182,10 +194,11 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
       {/* drawer derecho */}
       <div className="w-full max-w-xl bg-white h-full shadow-xl p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Agregar nueva ruta</h2>
+          <h2 className="text-xl font-semibold">Editar ruta</h2>
           <button onClick={onClose} className="text-gray-600 hover:text-gray-900">✕</button>
         </div>
 
+        {loading && <div className="mb-3 text-sm text-gray-600">Cargando…</div>}
         {error && (
           <div className="mb-3 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm">{error}</div>
         )}
@@ -193,132 +206,135 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
           <div className="mb-3 rounded-md bg-green-50 text-green-700 px-3 py-2 text-sm">{okMsg}</div>
         )}
 
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">ID (numérico propio)</label>
-            <input
-              type="number"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              className="mt-1 w-full border rounded-md p-2"
-              placeholder="Ej. 101"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Nombre (label)</label>
-            <input
-              type="text"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              className="mt-1 w-full border rounded-md p-2"
-              placeholder="Ej. Arco Sur - Centro"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        {!loading && (
+          <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Tipo</label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="mt-1 w-full border rounded-md p-2 bg-white"
-              >
-                <option value="line">line</option>
-                <option value="circuit">circuit</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700">ID (numérico propio)</label>
+              <input
+                type="number"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                className="mt-1 w-full border rounded-md p-2 bg-gray-50"
+                placeholder="Ej. 101"
+                disabled
+                title="El ID no se puede cambiar"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Color</label>
-              <div className="mt-1 flex items-center gap-2">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="h-10 w-14 p-0 border rounded"
-                  title="Selecciona color"
-                />
-                <input
-                  type="text"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="flex-1 border rounded-md p-2"
-                  placeholder="#dc2626"
-                />
+              <label className="block text-sm font-medium text-gray-700">Nombre (label)</label>
+              <input
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className="mt-1 w-full border rounded-md p-2"
+                placeholder="Ej. Arco Sur - Centro"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tipo</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="mt-1 w-full border rounded-md p-2 bg-white"
+                >
+                  <option value="line">line</option>
+                  <option value="circuit">circuit</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Color</label>
+                <div className="mt-1 flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="h-10 w-14 p-0 border rounded"
+                    title="Selecciona color"
+                  />
+                  <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="flex-1 border rounded-md p-2"
+                    placeholder="#dc2626"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Points */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Puntos del recorrido (points)</h3>
+            {/* Points */}
+            <div className="border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Puntos del recorrido (points)</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPointsModal(true)}
+                  className="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Editar puntos
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">{points.length} puntos</p>
+              {points.length > 0 && (
+                <div className="mt-2 max-h-40 overflow-auto text-sm">
+                  {points.map((p, i) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <span className="font-mono">[{p[0].toFixed(6)}, {p[1].toFixed(6)}]</span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => movePoint(i, -1)} className="text-xs px-2 py-1 rounded bg-gray-100">↑</button>
+                        <button onClick={() => movePoint(i, +1)} className="text-xs px-2 py-1 rounded bg-gray-100">↓</button>
+                        <button onClick={() => removePoint(i)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Eliminar</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Stops */}
+            <div className="border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Paradas (stops)</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowStopsModal(true)}
+                  className="px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  Agregar paradas
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">{stops.length} paradas</p>
+              {stops.length > 0 && (
+                <div className="mt-2 max-h-48 overflow-auto text-sm">
+                  {stops.map((s, i) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <div>
+                        <div className="font-medium">{s.nombre || "Parada"}</div>
+                        <div className="font-mono text-gray-600">[{s.coordenas?.[0]?.toFixed?.(6)}, {s.coordenas?.[1]?.toFixed?.(6)}]</div>
+                      </div>
+                      <button onClick={() => removeStop(i)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Quitar</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 mt-2">
+              <button className="px-4 py-2 rounded-md border" onClick={onClose}>Cancelar</button>
               <button
-                type="button"
-                onClick={() => setShowPointsModal(true)}
-                className="px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                disabled={!canSave || saving}
+                onClick={submit}
+                className={`px-4 py-2 rounded-md text-white ${canSave ? "bg-yellow-600 hover:bg-yellow-700" : "bg-gray-400"}`}
               >
-                Editar puntos
+                {saving ? "Guardando..." : "Actualizar ruta"}
               </button>
             </div>
-            <p className="text-sm text-gray-600 mt-2">{points.length} puntos agregados</p>
-            {points.length > 0 && (
-              <div className="mt-2 max-h-40 overflow-auto text-sm">
-                {points.map((p, i) => (
-                  <div key={i} className="flex items-center justify-between py-1">
-                    <span className="font-mono">[{p[0].toFixed(6)}, {p[1].toFixed(6)}]</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => movePoint(i, -1)} className="text-xs px-2 py-1 rounded bg-gray-100">↑</button>
-                      <button onClick={() => movePoint(i, +1)} className="text-xs px-2 py-1 rounded bg-gray-100">↓</button>
-                      <button onClick={() => removePoint(i)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Eliminar</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
-
-          {/* Stops */}
-          <div className="border rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Paradas (stops)</h3>
-              <button
-                type="button"
-                onClick={() => setShowStopsModal(true)}
-                className="px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
-              >
-                Agregar paradas
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">{stops.length} paradas agregadas</p>
-            {stops.length > 0 && (
-              <div className="mt-2 max-h-48 overflow-auto text-sm">
-                {stops.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between py-1">
-                    <div>
-                      <div className="font-medium">{s.nombre || "Parada"}</div>
-                      <div className="font-mono text-gray-600">[{s.coordenas?.[0]?.toFixed?.(6)}, {s.coordenas?.[1]?.toFixed?.(6)}]</div>
-                    </div>
-                    <button onClick={() => removeStop(i)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Quitar</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-
-          <div className="flex items-center justify-end gap-2 mt-2">
-            <button className="px-4 py-2 rounded-md border" onClick={onClose}>Cancelar</button>
-            <button
-              disabled={!canSave || saving}
-              onClick={submit}
-              className={`px-4 py-2 rounded-md text-white ${canSave ? "bg-green-600 hover:bg-green-700" : "bg-gray-400"}`}
-            >
-              {saving ? "Guardando..." : "Guardar ruta"}
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Modal Points */}
         {showPointsModal && (
@@ -483,4 +499,3 @@ export default function AddRuta({ open = true, onClose = () => {}, onCreated = (
     </div>
   );
 }
-

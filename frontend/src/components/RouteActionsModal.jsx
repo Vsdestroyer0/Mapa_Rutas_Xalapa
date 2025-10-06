@@ -12,8 +12,12 @@ const RouteActionsModal = ({ route, onClose }) => {
             }
             window.location.href = `/route/${route.id}`;
         } else if (action === "editar") {
-            alert(`Editar ruta: ${route.label}`);
-            // Aquí abrirías un formulario o modal de edición
+            // Navegar al editor por id numérico
+            if (route.id === undefined || route.id === null) {
+                alert("Esta ruta no tiene 'id' definido. No se puede editar sin 'id'. Actualiza el backend para incluir el campo 'id' en el listado.");
+                return;
+            }
+            window.location.href = `/editRuta/${route.id}`;
         } else if (action === "eliminar") {
             const confirmar = confirm(
                 `¿Seguro que deseas eliminar la ruta: ${route.label}?`

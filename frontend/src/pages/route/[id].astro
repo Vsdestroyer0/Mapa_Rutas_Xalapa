@@ -42,7 +42,11 @@ const route = (await res.json()) as Ruta;
   <section class="space-y-6">
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
 
-    {route.images?.[0] && <BusView src={route.images[0]} />}
+    {(
+      (route.images && route.images.length > 0) || true
+    ) && (
+      <BusView src={route.images?.[0] ?? `bus_${route.id}`} />
+    )}
     <RouteStats route={route.stops} client:only="react" />
 
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md">
