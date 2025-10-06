@@ -54,14 +54,14 @@ import MainLayout from "../layouts/mainLayout.astro";
       const json = await res.json(); //convierte el stream de bytes a json
 
       if (json.success) {
-        /*   // Guardar sesión en localStorage
+        // Guardar sesión en localStorage
         localStorage.setItem(
           "user",
           JSON.stringify({
             username: json.username,
             role: json.role,
           })
-        ); */
+        );
 
         msg.textContent = "";
         window.location.href = "/"; //de regreso al index
