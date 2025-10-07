@@ -96,13 +96,13 @@ export default function SearchBar({ onSearch }) {
 
     return (
         <div className="mb-6">
-            <form onSubmit={handleSearch} className="flex gap-2">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
                 <input
                     type="text"
                     value={palabraBusqueda}
                     onChange={(e) => setPalabraBusqueda(e.target.value)}
                     placeholder="Parada o sitio de inicio"
-                    className="flex-1 border rounded-md p-2"
+                    className="flex-1 min-w-0 w-full sm:w-auto border rounded-md p-2"
                 />
 
                 <input
@@ -110,12 +110,12 @@ export default function SearchBar({ onSearch }) {
                     value={palabraBusqueda2}
                     onChange={(e) => setPalabraBusqueda2(e.target.value)}
                     placeholder="Parada o sitio de destino"
-                    className="flex-1 border rounded-md p-2"
+                    className="flex-1 min-w-0 w-full sm:w-auto border rounded-md p-2"
                 />
 
                 <button
                     type="submit"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 w-full sm:w-auto"
                 >
                     Buscar
                 </button>

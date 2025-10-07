@@ -68,15 +68,15 @@ export default function RouteManager({ baseURL }) {
             {isAdmin && <AdminControls />}
             <SearchBar onSearch={setQuery} />
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
                 <button
-                    className="bg-green-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                    className={`bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md cursor-pointer text-sm sm:text-base whitespace-normal break-words text-center leading-snug max-w-full w-full sm:w-auto ${''}`}
                     onClick={() => setShowNearby(!showNearby)}
                 >
                     {showNearby ? "Mostrar rutas" : "Buscar paradas cerca de mí"}
                 </button>
                 <button
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                    className="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-md cursor-pointer text-sm sm:text-base whitespace-normal break-words text-center leading-snug max-w-full w-full sm:w-auto"
                     onClick={() => setShowPair((v) => !v)}
                 >
                     {showPair ? "Ocultar búsqueda por 2 paradas" : "Buscar ruta entre 2 paradas"}
