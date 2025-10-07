@@ -250,19 +250,19 @@ export default function EditRuta({ open = true, routeId, onClose = () => { }, on
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">Color</label>
-                <div className="mt-1 flex items-center gap-2">
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
                   <input
                     type="color"
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="h-10 w-14 p-0 border rounded"
+                    className="w-8 h-8 rounded border-2 border-gray-200 cursor-pointer flex-shrink-0"
                     title="Selecciona color"
                   />
                   <input
                     type="text"
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="flex-1 border rounded-md p-2"
+                    className="flex-1 min-w-0 border rounded-md p-2 text-sm"
                     placeholder="#dc2626"
                   />
                 </div>
