@@ -185,7 +185,7 @@ export default function AddRuta({ open = true, onClose = () => { }, onCreated = 
       <div className="w-full max-w-xl bg-white h-full shadow-xl p-6 overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Agregar nueva ruta</h2>
-          <button onClick={onClose} className="text-gray-600 hover:text-gray-900">✕</button>
+          <button onClick={() => window.location.href = "/"} className="text-gray-600 hover:text-gray-900">✕</button>
         </div>
 
         {error && (
@@ -311,7 +311,7 @@ export default function AddRuta({ open = true, onClose = () => { }, onCreated = 
 
 
           <div className="flex items-center justify-end gap-2 mt-2">
-            <button className="px-4 py-2 rounded-md border" onClick={onClose}>Cancelar</button>
+            <button className="px-4 py-2 rounded-md border" onClick={() => window.location.href = "/"}>Cancelar</button>
             <button
               disabled={!canSave || saving}
               onClick={submit}
