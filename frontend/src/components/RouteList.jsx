@@ -89,7 +89,8 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
     if (isAdmin) {
       onSelectRoute({ ...route, index });
     } else {
-      if (!route.id) {
+      // CORRECCIÓN: Usar estricta comparación con null/undefined en lugar de !route.id
+      if (route.id === undefined || route.id === null) {
         alert("Esta ruta no tiene 'id'. Pide al backend incluir 'id' en /api/rutas/listado.");
         return;
       }

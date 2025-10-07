@@ -17,7 +17,7 @@ import MainLayout from "../../layouts/mainLayout.astro";
 import Map from "../../components/Map.jsx";
 import BusView from "../../components/BusView.astro";
 import RouteStats from "../../components/RouteStats.jsx";
-
+import TrafficControls from "../../components/trafficControls.jsx";
 interface Ruta {
   _id: string;
   id: number;
@@ -46,7 +46,7 @@ const route = (await res.json()) as Ruta;
 <MainLayout title={`Ruta ${route.label}`}>
   <section class="space-y-6">
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
-
+    <TrafficControls client:only="react" />
     {route.images?.[0] && <BusView src={route.images[0]} />}
     <RouteStats route={route.stops} client:only="react" />
 
