@@ -3,26 +3,23 @@ import { useState } from "react";
 export default function SearchBar({ onSearch }) {
     const [palabraBusqueda, setPalabraBusqueda] = useState("");
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        onSearch(palabraBusqueda); // solo envía al dar clic en Buscar
+    // Nota: Eliminamos el botón de submit para buscar en tiempo real mientras se escribe.
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setPalabraBusqueda(value);
+        // Enviamos la palabra de búsqueda al componente padre (RouteManager)
+        onSearch(value);
     };
 
     return (
-        <form onSubmit={handleSearch} className="mb-6 flex gap-2">
+        <div className="mb-6">
             <input
                 type="text"
                 value={palabraBusqueda}
-                onChange={(e) => setPalabraBusqueda(e.target.value)}
-                placeholder="Buscar una ruta..."
-                className="flex-1 border rounded-md p-2"
+                onChange={handleInputChange}
+                placeholder="Buscar rutas, paradas o sitios importantes..."
+                className="w-full border rounded-md p-2 flex-1"
             />
-            <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-            >
-                Buscar
-            </button>
-        </form>
+        </div>
     );
 }
