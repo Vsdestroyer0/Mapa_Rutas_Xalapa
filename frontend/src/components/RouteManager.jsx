@@ -11,21 +11,27 @@ export default function RouteManager({ baseURL }) {
     const [showPair, setShowPair] = useState(false);
     const [query, setQuery] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [selectedRoute, setSelectedRoute] = useState(null);
     const [viewMode, setViewMode] = useState("all"); // all | favoritos | ocultos
 
     useEffect(() => {
         const checkSession = async () => {
-            if (!baseURL) return; // evitar fetch si no hay URL
+            if (!baseURL) return;
             try {
                 const res = await fetch(`${baseURL}/api/session`, {
                     credentials: "include",
                 });
                 if (!res.ok) throw new Error("No autorizado");
                 const data = await res.json();
-                if (data.user?.role === "admin") setIsAdmin(true);
+                if (data?.user) {
+                    setIsLoggedIn(true);
+                    if (data.user.role === "admin") setIsAdmin(true);
+                }
             } catch (err) {
                 console.error("No se pudo verificar la sesión:", err);
+                setIsLoggedIn(false);
+                setIsAdmin(false);
             }
         };
 
@@ -34,7 +40,7 @@ export default function RouteManager({ baseURL }) {
 
     return (
         <div className="max-w-3xl mx-auto p-4">
-            {/* Filtros de vista */}
+            {/* Filtros */}
             <div className="flex gap-2 mb-6">
                 <button
                     className={`px-4 py-2 rounded-md ${viewMode === "all" ? "bg-blue-600 text-white" : "bg-gray-200"
@@ -84,6 +90,7 @@ export default function RouteManager({ baseURL }) {
                 <RouteList
                     palabraBusqueda={query}
                     isAdmin={isAdmin}
+                    isLoggedIn={isLoggedIn}
                     onSelectRoute={setSelectedRoute}
                     viewMode={viewMode}
                 />
