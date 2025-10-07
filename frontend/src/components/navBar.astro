@@ -1,6 +1,11 @@
 <nav class="bg-blue-600 p-4 text-white">
   <div class="flex justify-between items-center">
-    <h1 class="text-lg font-bold">MiRutaXalapa</h1>
+    <!-- Título y nombre de usuario -->
+    <div class="flex flex-col">
+      <h1 class="text-lg font-bold">MiRutaXalapa</h1>
+      <span id="user-name" class="mt-1 font-semibold"></span>
+    </div>
+
     <!-- Botón para móviles -->
     <button
       id="menu-btn"
@@ -22,7 +27,10 @@
     </button>
 
     <!-- Menú principal -->
-    <div id="menu" class="space-x-4 flex flex-col sm:flex-row">
+    <div
+      id="menu"
+      class="hidden flex-col space-y-2 mt-4 md:mt-0 md:flex md:flex-row md:space-x-4 md:space-y-0"
+    >
       <a href="/" class="hover:underline">Inicio</a>
       <a
         href="/signup"
@@ -41,8 +49,18 @@
 <script type="module">
   const btn = document.getElementById("menu-btn");
   const menu = document.getElementById("menu");
+  const userName = document.getElementById("user-name");
 
+  // Toggle menú en móviles
   btn.addEventListener("click", () => {
     menu.classList.toggle("hidden");
   });
+
+  // Mostrar usuario logueado con primera letra en mayúscula
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (user?.username) {
+    const capitalized =
+      user.username.charAt(0).toUpperCase() + user.username.slice(1);
+    userName.textContent = `Hola, ${capitalized}`;
+  }
 </script>
