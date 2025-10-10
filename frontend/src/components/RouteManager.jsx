@@ -1,20 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import SearchBar from "./SearchBar.jsx";
-import InicioDestino from "./InicioDestino.jsx";
 import RouteList from "./RouteList.jsx";
-import ParadasCerca from "./paradasCerca.jsx";
-import AdminControls from "./AdminControls.jsx";
-import RouteActionsModal from "./RouteActionsModal.jsx";
+// Las importaciones directas de los módulos pesados/condicionales deben ser eliminadas.
+
+// 1. DEFINICIÓN DE LOS PUNTOS DE CARGA DIFERIDA (LAZY LOADING)
+// Estos componentes se moverán a bundles JavaScript separados.
+const LazyInicioDestino = lazy(() => import("./InicioDestino.jsx"));
+const LazyParadasCerca = lazy(() => import("./paradasCerca.jsx"));
+const LazyAdminControls = lazy(() => import("./AdminControls.jsx"));
+const LazyRouteActionsModal = lazy(() => import("./RouteActionsModal.jsx"));
+
 
 export default function RouteManager({ baseURL }) {
+    // --- ESTADO PRINCIPAL (Se mantiene) ---
     const [showNearby, setShowNearby] = useState(false);
     const [showPair, setShowPair] = useState(false);
     const [query, setQuery] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [selectedRoute, setSelectedRoute] = useState(null);
-    const [viewMode, setViewMode] = useState("all"); // all | favoritos | ocultos
+    const [viewMode, setViewMode] = useState("all");
 
+    // Lógica de sesión (Se mantiene)
     useEffect(() => {
         const checkSession = async () => {
             if (!baseURL) return;
@@ -38,9 +45,21 @@ export default function RouteManager({ baseURL }) {
         checkSession();
     }, [baseURL]);
 
+    // Handlers para gestionar las vistas mutuamente excluyentes
+    const handleToggleNearby = () => {
+        setShowNearby(v => !v);
+        setShowPair(false);
+    };
+
+    const handleTogglePair = () => {
+        setShowPair(v => !v);
+        setShowNearby(false);
+    };
+
+
     return (
         <div className="max-w-3xl mx-auto p-4">
-            {/* Filtros */}
+            {/* Filtros de modo de vista (Ligeros, se cargan de inmediato) */}
             <div className="flex gap-2 mb-6">
                 <button
                     className={`px-4 py-2 rounded-md ${viewMode === "all" ? "bg-blue-600 text-white" : "bg-gray-200"
@@ -65,39 +84,52 @@ export default function RouteManager({ baseURL }) {
                 </button>
             </div>
 
-            {isAdmin && <AdminControls />}
+            {/* 2. Carga Diferida para Controles de Administración (Solo si isAdmin) */}
+            {isAdmin && (
+                <Suspense fallback={<p className="text-gray-400">Cargando controles de administración...</p>}>
+                    <LazyAdminControls />
+                </Suspense>
+            )}
+
             <SearchBar onSearch={setQuery} />
 
+            {/* Botones de activación de módulos pesados */}
             <div className="flex flex-wrap gap-2 mb-6">
                 <button
-                    className={`bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md cursor-pointer text-sm sm:text-base whitespace-normal break-words text-center leading-snug max-w-full w-full sm:w-auto ${''}`}
-                    onClick={() => setShowNearby(!showNearby)}
+                    className="bg-green-600 text-white px-3 sm:px-4 py-2 rounded-md cursor-pointer text-sm sm:text-base whitespace-normal break-words text-center leading-snug max-w-full w-full sm:w-auto"
+                    onClick={handleToggleNearby}
                 >
                     {showNearby ? "Mostrar rutas" : "Buscar paradas cerca de mí"}
                 </button>
                 <button
                     className="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-md cursor-pointer text-sm sm:text-base whitespace-normal break-words text-center leading-snug max-w-full w-full sm:w-auto"
-                    onClick={() => setShowPair((v) => !v)}
+                    onClick={handleTogglePair}
                 >
                     {showPair ? "Ocultar búsqueda por 2 paradas" : "Buscar ruta entre 2 paradas"}
                 </button>
             </div>
 
-            {showPair && <InicioDestino />}
-            {showNearby ? (
-                <ParadasCerca />
-            ) : (
-                <RouteList
-                    palabraBusqueda={query}
-                    isAdmin={isAdmin}
-                    isLoggedIn={isLoggedIn}
-                    onSelectRoute={setSelectedRoute}
-                    viewMode={viewMode}
-                />
-            )}
+            {/* 3. Carga Diferida para Módulos de Búsqueda Pesada */}
+            <Suspense fallback={<p className="text-blue-500 mt-4 text-center">Cargando módulo de búsqueda...</p>}>
+                {showPair && <LazyInicioDestino />}
+                {showNearby ? (
+                    <LazyParadasCerca />
+                ) : (
+                    <RouteList
+                        palabraBusqueda={query}
+                        isAdmin={isAdmin}
+                        isLoggedIn={isLoggedIn}
+                        onSelectRoute={setSelectedRoute}
+                        viewMode={viewMode}
+                    />
+                )}
+            </Suspense>
 
-            {isAdmin && (
-                <RouteActionsModal route={selectedRoute} onClose={() => setSelectedRoute(null)} />
+            {/* 4. Carga Diferida para Modal de Administrador */}
+            {isAdmin && selectedRoute && (
+                <Suspense fallback={null}>
+                    <LazyRouteActionsModal route={selectedRoute} onClose={() => setSelectedRoute(null)} />
+                </Suspense>
             )}
         </div>
     );
