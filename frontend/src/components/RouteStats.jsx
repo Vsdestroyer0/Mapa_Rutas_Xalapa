@@ -1,15 +1,18 @@
-// src/components/RouteStats.jsx
 import useUserPosition from "../hooks/useUserPosition.jsx";
 
 export default function RouteStats({ route }) {
     const userPosition = useUserPosition();
 
+    // [MODIFICACIÓN]: Extraer horario_servicio y las paradas directamente del objeto 'route'
+    const { horario_servicio, stops: routeStops } = route;
+
     if (!userPosition.lat || !userPosition.lng) {
         return <p>Cargando ubicación...</p>;
     }
 
-    // Normalizar stops del JSON
-    const stops = (route ?? []).map((s) => ({
+    // Normalizar stops del JSON (usando routeStops)
+    const stops = (routeStops ?? []).map((s) => ({
+        // ... (el resto de la lógica de stops se mantiene igual)
         lat: s.coordenas?.[0],
         lng: s.coordenas?.[1],
         name: s.nombre,
@@ -69,6 +72,20 @@ export default function RouteStats({ route }) {
     return (
         <div className="p-4 bg-white rounded-lg shadow-md mb-4">
             <h4 className="font-bold mb-2">Estadísticas de la ruta</h4>
+
+            {/* Mostrar Horario de Servicio */}
+            {horario_servicio && (
+                <div className="mb-2">
+                    <p>Horario de Servicio:</p>
+                    <p className="ml-2">
+                        Inicio: <strong>{horario_servicio.inicio || 'No disponible'}</strong>
+                    </p>
+                    <p className="ml-2">
+                        Fin: <strong>{horario_servicio.fin || 'No disponible'}</strong>
+                    </p>
+                </div>
+            )}
+
             <p>Número de paradas: {stops.length}</p>
             <p>
                 Tiempo aproximado de recorrido en autobús:{" "}
@@ -77,6 +94,7 @@ export default function RouteStats({ route }) {
 
             {nearestStop && (
                 <>
+                    <h5 className="font-semibold mt-3 mb-1">Tu ubicación:</h5>
                     <p>
                         Parada más cercana: <strong>{nearestStop.name}</strong>
                     </p>
@@ -93,4 +111,3 @@ export default function RouteStats({ route }) {
         </div>
     );
 }
-

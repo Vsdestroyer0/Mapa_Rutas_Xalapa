@@ -48,7 +48,7 @@ const route = (await res.json()) as Ruta;
     <h1 class="text-3xl font-bold text-gray-800">{route.label}</h1>
     <TrafficControls client:only="react" />
     {route.images?.[0] && <BusView src={route.images[0]} />}
-    <RouteStats route={route.stops} client:only="react" />
+    <RouteStats route={route} client:only="react" />
 
     <div class="h-[500px] w-full rounded-lg overflow-hidden shadow-md mb-6">
       <Map
