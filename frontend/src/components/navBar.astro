@@ -1,4 +1,8 @@
-<nav class="bg-blue-600 p-4 text-white">
+---
+const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+---
+
+<nav class="bg-blue-600 p-4 text-white" data-backend-url={baseURL}>
   <div class="relative md:flex md:justify-between md:items-center">
     <!-- Título y nombre de usuario -->
     <div class="flex flex-col">
@@ -80,7 +84,10 @@
     logoutBtn.addEventListener("click", async () => {
       try {
         // Usar la URL de el coso de emir
-        const response = await fetch("https://backend-mapa-production.up.railway.app/api/logout", {
+        //mejore el enlace para que sirva en produccion y desarrollo
+        const navElement = document.querySelector("nav[data-backend-url]");
+        const backendURL = navElement.dataset.backendUrl;
+        const response = await fetch(`${backendURL}/api/logout`, {
           method: "POST",
           credentials: "include",
           headers: {
@@ -89,7 +96,7 @@
         });
 
         console.log("Status de respuesta:", response.status);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -110,7 +117,7 @@
         console.error("Error completo:", error);
         console.error("Tipo de error:", error.name);
         console.error("Mensaje:", error.message);
-        
+
         // Intentar cerrar sesión de todas formas limpiando el localStorage
         localStorage.removeItem("user");
         alert("Sesión cerrada localmente. Redirigiendo...");

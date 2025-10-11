@@ -13,7 +13,9 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
   const [selectedRoute, setSelectedRoute] = useState(null);
 
   // Función para obtener la URL base
-  const getBaseUrl = useCallback(() => import.meta.env.PUBLIC_API_URL || "http://localhost:3000", []);
+  const getBaseUrl = useCallback(() =>
+    import.meta.env?.PUBLIC_API_URL || "http://localhost:3000"
+    , []);
 
   // ------------------------------------------
   // LÓGICA 1: Fetch de Rutas (Unificada y Listado) - Sin cambios importantes
@@ -133,22 +135,37 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          routeId: routeId,
-          list: list,
-          action: isAdding ? 'add' : 'remove',
+          route_id: routeId, // 👈 ¡CORREGIDO! Antes era 'routeId'
+          type: list,        // 👈 ¡CORREGIDO! Antes era 'list'
+          // Ya no es necesario enviar 'action'
         }),
       });
+      if (res.status === 401 || res.status === 403) {
+        // [NUEVO MANEJO DE ERROR]: Si el servidor dice que la sesión es inválida
+        alert("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
+        localStorage.removeItem("user"); // Limpia el estado local obsoleto
+        window.location.reload(); // Recarga para forzar el logout visual
+        return;
+      }
 
-      if (!res.ok) throw new Error("El servidor no pudo guardar la preferencia.");
+      if (!res.ok) {
+        // [MODIFICACIÓN CLAVE]: Eliminamos la lógica de cerrar sesión, solo notificamos
+        if (res.status === 401 || res.status === 403) {
+          // El servidor rechaza el token. Solo notificamos y revertimos el estado visual.
+          alert("No se pudo guardar. La sesión no está siendo reconocida por el servidor. Por favor, recarga la página e intenta de nuevo.");
+        }
+        throw new Error("El servidor no pudo guardar la preferencia.");
+      }
 
-      // Si tiene éxito, el estado ya es el correcto (optimista)
+      // ... (Si tiene éxito, el estado ya es el correcto)
     } catch (err) {
       console.error("Fallo al guardar en el servidor:", err);
       alert("Error: No se pudo guardar la preferencia en la nube. Revertiendo cambios.");
-      // 3. REVERTIR EL CAMBIO SI EL SERVIDOR FALLA
       setPrefs(originalPrefs);
     }
   };
+
+
 
 
   // Handlers wrapper (Ahora llaman a togglePref)

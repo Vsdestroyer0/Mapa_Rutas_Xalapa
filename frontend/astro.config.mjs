@@ -14,8 +14,8 @@ export default defineConfig({
   vite: {
     server: {
       proxy: {
-        /*  "/api": 'http://localhost:3000', */
-        '/api': 'https://backend-mapa-production.up.railway.app',
+        "/api": 'http://localhost:3000',
+        /*  '/api': 'https://backend-mapa-production.up.railway.app', */
       },
     },
     plugins: [tailwindcss()]
