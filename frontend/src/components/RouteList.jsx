@@ -1,29 +1,34 @@
-import React, { useEffect, useState } from "react";
-import RouteActionsModal from "./RouteActionsModal.jsx"; // Asegúrate de importar el Modal
+import React, { useEffect, useState, useCallback } from "react";
+import RouteActionsModal from "./RouteActionsModal.jsx";
 
 const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMode }) => {
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [prefs, setPrefs] = useState({ favoritos: [], ocultos: [] }); // Mantener prefs
-  const [selectedRoute, setSelectedRoute] = useState(null); // Para acciones de admin
+
+  // [MODIFICACIÓN CLAVE] Inicializamos y manejamos la carga de preferencias
+  const [prefs, setPrefs] = useState({ favoritos: [], ocultos: [] });
+  const [isPrefsLoading, setIsPrefsLoading] = useState(true);
+
+  const [selectedRoute, setSelectedRoute] = useState(null);
+
+  // Función para obtener la URL base
+  const getBaseUrl = useCallback(() => import.meta.env.PUBLIC_API_URL || "http://localhost:3000", []);
 
   // ------------------------------------------
-  // LÓGICA 1: Fetch de Rutas (Unificada y Listado)
+  // LÓGICA 1: Fetch de Rutas (Unificada y Listado) - Sin cambios importantes
   // ------------------------------------------
   useEffect(() => {
     const fetchRoutes = async () => {
       setLoading(true);
       setError(null);
 
-      const baseURL = import.meta.env.PUBLIC_API_URL || "http://localhost:3000";
+      const baseURL = getBaseUrl();
       let url;
 
       if (palabraBusqueda) {
-        // USAR ENDPOINT DE BÚSQUEDA UNIFICADA
         url = `${baseURL}/api/search/unified?q=${encodeURIComponent(palabraBusqueda)}`;
       } else {
-        // USAR ENDPOINT DE LISTADO COMPLETO (cuando el buscador está vacío)
         url = `${baseURL}/api/rutas/listado`;
       }
 
@@ -36,7 +41,6 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
         }
 
         const data = await res.json();
-
         setRoutes(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Error fetching routes:", err);
@@ -46,73 +50,124 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
         setLoading(false);
       }
     };
-
-    // NOTA: Se ejecuta cada vez que 'palabraBusqueda' cambia (al teclear en SearchBar)
     fetchRoutes();
-  }, [palabraBusqueda]);
+  }, [palabraBusqueda, getBaseUrl]);
 
   // ------------------------------------------
-  // LÓGICA 2: Preferencias (Local Storage)
-  // Se mantiene intacta para que los favoritos/ocultos funcionen
+  // LÓGICA 2: MIGRACIÓN A BACKEND (CARGA DE PREFERENCIAS)
   // ------------------------------------------
+
+  // Función para obtener preferencias del servidor (se usa en el useEffect y en caso de error)
+  const fetchPrefsFromBackend = useCallback(async () => {
+    if (!isLoggedIn) {
+      setPrefs({ favoritos: [], ocultos: [] });
+      setIsPrefsLoading(false);
+      return;
+    }
+
+    const baseURL = getBaseUrl();
+    setIsPrefsLoading(true);
+    try {
+      // LLAMADA AL NUEVO ENDPOINT PROTEGIDO
+      const res = await fetch(`${baseURL}/api/user/prefs`, { credentials: "include" });
+      if (!res.ok) {
+        // Si el token expira o hay error, asume sin preferencias
+        setPrefs({ favoritos: [], ocultos: [] });
+        return;
+      }
+
+      const data = await res.json();
+      setPrefs({
+        favoritos: Array.isArray(data.favoritos) ? data.favoritos : [],
+        ocultos: Array.isArray(data.ocultos) ? data.ocultos : [],
+      });
+    } catch (err) {
+      console.error("Error al cargar preferencias desde el servidor:", err);
+      setPrefs({ favoritos: [], ocultos: [] });
+    } finally {
+      setIsPrefsLoading(false);
+    }
+  }, [isLoggedIn, getBaseUrl]);
+
+  // Ejecutar la carga de preferencias al iniciar sesión
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const storedPrefs = JSON.parse(localStorage.getItem(`prefs_${user.username}`) || '{"favoritos":[],"ocultos":[]}');
-    setPrefs(storedPrefs);
-  }, []);
+    fetchPrefsFromBackend();
+  }, [isLoggedIn, fetchPrefsFromBackend]);
 
-  const savePrefs = (newPrefs) => {
-    setPrefs(newPrefs);
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    localStorage.setItem(`prefs_${user.username}`, JSON.stringify(newPrefs));
-  };
+
+  // ------------------------------------------
+  // LÓGICA 3: MIGRACIÓN A BACKEND (TOGGLE DE PREFERENCIAS)
+  // ------------------------------------------
 
   const requireLogin = () => {
     alert("Debes iniciar sesión para usar esta función.");
   };
 
-  const toggleFavorito = (id) => {
+  // [MODIFICACIÓN CLAVE]: Función unificada para enviar el cambio al Backend
+  const togglePref = async (routeId, list) => {
     if (!isLoggedIn) return requireLogin();
-    if (prefs.favoritos.includes(id)) {
-      const updated = { ...prefs, favoritos: prefs.favoritos.filter(f => f !== id) };
-      savePrefs(updated);
+
+    // 1. DETERMINAR ACCIÓN Y HACER ACTUALIZACIÓN OPTIMISTA (Mejora la UX)
+    const isAdding = !prefs[list].includes(routeId);
+
+    // Clonar estado para revertir en caso de fallo
+    const originalPrefs = prefs;
+
+    const currentPrefs = { ...prefs };
+    const opposingList = list === 'favoritos' ? 'ocultos' : 'favoritos';
+
+    // Aplicar cambio optimista en el frontend
+    if (isAdding) {
+      currentPrefs[list] = [...currentPrefs[list], routeId];
+      currentPrefs[opposingList] = currentPrefs[opposingList].filter(id => id !== routeId);
     } else {
-      const updated = {
-        ...prefs,
-        favoritos: [...prefs.favoritos, id],
-        ocultos: prefs.ocultos.filter(o => o !== id),
-      };
-      savePrefs(updated);
+      currentPrefs[list] = currentPrefs[list].filter(id => id !== routeId);
+    }
+    setPrefs(currentPrefs);
+
+    // 2. LLAMADA AL BACKEND PARA PERSISTIR
+    const baseURL = getBaseUrl();
+    try {
+      const res = await fetch(`${baseURL}/api/user/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          routeId: routeId,
+          list: list,
+          action: isAdding ? 'add' : 'remove',
+        }),
+      });
+
+      if (!res.ok) throw new Error("El servidor no pudo guardar la preferencia.");
+
+      // Si tiene éxito, el estado ya es el correcto (optimista)
+    } catch (err) {
+      console.error("Fallo al guardar en el servidor:", err);
+      alert("Error: No se pudo guardar la preferencia en la nube. Revertiendo cambios.");
+      // 3. REVERTIR EL CAMBIO SI EL SERVIDOR FALLA
+      setPrefs(originalPrefs);
     }
   };
 
-  const toggleOculto = (id) => {
-    if (!isLoggedIn) return requireLogin();
-    if (prefs.ocultos.includes(id)) {
-      const updated = { ...prefs, ocultos: prefs.ocultos.filter(o => o !== id) };
-      savePrefs(updated);
-    } else {
-      const updated = {
-        ...prefs,
-        ocultos: [...prefs.ocultos, id],
-        favoritos: prefs.favoritos.filter(f => f !== id),
-      };
-      savePrefs(updated);
-    }
-  };
+
+  // Handlers wrapper (Ahora llaman a togglePref)
+  const toggleFavorito = (id) => togglePref(id, 'favoritos');
+  const toggleOculto = (id) => togglePref(id, 'ocultos');
 
   // ------------------------------------------
-  // LÓGICA 3: Filtrado Final por ViewMode (sobre los resultados del server)
+  // LÓGICA 4: Renderizado y Filtros
   // ------------------------------------------
+
+  // El filtro de preferencias permanece sin cambios, ahora opera sobre los datos del backend
   const visibleRoutes = routes.filter(r => {
     if (viewMode === "favoritos") return prefs.favoritos.includes(r.id) && !prefs.ocultos.includes(r.id);
     if (viewMode === "ocultos") return prefs.ocultos.includes(r.id);
-    // Si viewMode es "all", muestra todas las rutas devueltas que NO estén ocultas
     return !prefs.ocultos.includes(r.id);
   });
 
 
-  const handleClick = (route) => { // Eliminamos 'index' ya que no se usa
+  const handleClick = (route) => {
     if (isAdmin) {
       setSelectedRoute(route);
     } else {
@@ -124,8 +179,8 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
     }
   };
 
-  if (loading) {
-    return <p className="text-blue-600 font-semibold mt-4">Buscando rutas y actualizando listado...</p>;
+  if (loading || isPrefsLoading) {
+    return <p className="text-blue-600 font-semibold mt-4">Cargando rutas y sincronizando preferencias...</p>;
   }
 
   if (error) {
@@ -140,7 +195,7 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
     );
   }
 
-  // El mapa final solo usa visibleRoutes
+  // Renderizado final
   return (
     <div className="w-full p-6 bg-white shadow-md rounded-lg">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">
@@ -159,7 +214,7 @@ const RouteList = ({ palabraBusqueda, isAdmin, isLoggedIn, onSelectRoute, viewMo
               {route.label || "Ruta sin nombre"}
             </span>
             <div className="flex gap-2">
-              {/* Botones de Favoritos y Ocultar (se detienen si se hace click sin ser admin) */}
+              {/* Botones de Favoritos y Ocultar */}
               <button
                 onClick={(e) => { e.stopPropagation(); toggleFavorito(route.id); }}
                 className={`text-yellow-500 hover:text-yellow-700 ${prefs.favoritos.includes(route.id) ? "font-bold" : ""}`}
